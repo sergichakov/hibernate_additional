@@ -16,7 +16,7 @@ public class SessionRepoHelper {
         properties.setProperty("hibernate.connection.url", "jdbc:postgresql://localhost:25432/demo");
         properties.setProperty("hibernate.connection.username", "anton");
         properties.setProperty("hibernate.connection.password", "anton");
-        properties.setProperty("hibernate.hbm2ddl.auto", "create-drop");
+        properties.setProperty("hibernate.hbm2ddl.auto", "update");
         properties.setProperty("hibernate.show_sql", "true");
 
         sessionFactory=new Configuration()

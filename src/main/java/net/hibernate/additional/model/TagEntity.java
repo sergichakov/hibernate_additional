@@ -19,17 +19,17 @@ public class TagEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "tag_id")
     private Long tag_id;
-    @Column (name="str")
+    @Column (name="str", length=100)
     private String str;
     @JsonIgnore
     @ToString.Exclude
-    @ManyToMany(cascade={CascadeType.MERGE,CascadeType.PERSIST},fetch = FetchType.LAZY,mappedBy = "tag")//  CascadeType.PERSIST}
-
-    /*@JoinTable(name="employee_task",
+    @ManyToMany(cascade={CascadeType.MERGE,CascadeType.PERSIST,CascadeType.REFRESH},fetch = FetchType.LAZY,mappedBy = "tag")//  CascadeType.PERSIST}
+    /*
+    @JoinTable(name="tags_tasks",
         joinColumns=  @JoinColumn(name="task_id", referencedColumnName="tag_id"),
         inverseJoinColumns= @JoinColumn(name="tag_id", referencedColumnName="task_id") )
+*/
 
-     */
     //@Column(name="tasks_set",length=50)
     private Set<TaskEntity> task;//=new HashSet<>();
     public void add(TaskEntity taskEntity){

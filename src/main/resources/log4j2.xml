@@ -32,7 +32,7 @@
 
     </Appenders>
     <Loggers>
-        <Root level="debug"><!-- trace -->
+        <Root level="info"><!-- trace debug-->
             <AppenderRef ref="rollingFile" level="TRACE"/>
             <AppenderRef ref="Console"/>
         </Root>

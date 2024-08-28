@@ -1,23 +1,26 @@
 package net.hibernate.additional.command;
 
-import lombok.Data;
-import lombok.Getter;
+import lombok.*;
 import net.hibernate.additional.model_kill_this.TaskStatus;
 
 import java.time.ZonedDateTime;
+import java.util.Date;
 import java.util.Set;
 @Data
 @Getter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder(toBuilder=true)
 public class TaskCommandDTO {
     private Long task_id;
 
     private String name;
 
-    private ZonedDateTime createDate;
+    private Date createDate;
 
-    private ZonedDateTime startDate;
+    private Date startDate;
 
-    private ZonedDateTime endDate;
+    private Date endDate;
 
     private TaskStatus status;
 

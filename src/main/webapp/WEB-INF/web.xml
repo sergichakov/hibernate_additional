@@ -6,12 +6,12 @@
 
 <servlet>
 <servlet-name>module_3_name</servlet-name>
-<!--<servlet-class>com.melchakov.chuck_berry_module_3.servlet.StartServlet -->
-    <servlet-class>net.hibernate.additional.controller.ViewListOfTasksServlet</servlet-class>
-</servlet>
-<servlet-mapping>
-    <servlet-name>module_3_name</servlet-name>
-    <url-pattern></url-pattern>
-</servlet-mapping>
+<servlet-class>net.hibernate.additional.controller.StartServlet </servlet-class>
+    <!--  <servlet-class>net.hibernate.additional.controller.ViewListOfTasksServlet</servlet-class>-->
+  </servlet>
+  <servlet-mapping>
+      <servlet-name>module_3_name</servlet-name>
+      <url-pattern></url-pattern>
+  </servlet-mapping>
 
-</web-app>
+  </web-app>

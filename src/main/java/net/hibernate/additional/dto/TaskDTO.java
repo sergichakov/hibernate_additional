@@ -6,6 +6,7 @@ import lombok.Setter;
 import net.hibernate.additional.model_kill_this.TaskStatus;
 
 import java.time.ZonedDateTime;
+import java.util.Date;
 import java.util.Set;
 @Setter
 @Data
@@ -15,11 +16,11 @@ public class TaskDTO {
 
     private String name;
 
-    private ZonedDateTime createDate;
+    private Date createDate;
 
-    private ZonedDateTime startDate;
+    private Date startDate;
 
-    private ZonedDateTime endDate;
+    private Date endDate;
 
     private TaskStatus status;
 

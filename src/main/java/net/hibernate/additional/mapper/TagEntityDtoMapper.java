@@ -7,10 +7,12 @@ import org.mapstruct.IterableMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
+import org.mapstruct.factory.Mappers;
 
 
 @Mapper(componentModel="default")
 public interface TagEntityDtoMapper {
+    TagEntityDtoMapper INSTANCE= Mappers.getMapper(TagEntityDtoMapper.class);
     @Mapping(target = "task", ignore = true)
     @IterableMapping(qualifiedByName="mapWithoutTask")
     TagDTO toDTO(TagEntity tag);

@@ -6,10 +6,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
+//import jakarta.servlet.annotation.
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import net.hibernate.additional.command.TagCommandDTO;
 import net.hibernate.additional.command.TaskCommandDTO;
 import net.hibernate.additional.dto.TaskDTO;
 import net.hibernate.additional.model.SessionObject;
@@ -20,7 +22,10 @@ import org.slf4j.LoggerFactory;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @WebServlet(name = "viewRequestServlet", value = "/task")
@@ -88,12 +93,32 @@ public class ViewListOfTasksServlet extends HttpServlet {
     @Override
     public void doPut(HttpServletRequest request, HttpServletResponse response) throws ServletException,IOException{
         ServletContext servletContext = getServletContext();
-        TaskCommandDTO taskCommandDto=jacksonProcessing(request);
+        List<TaskCommandDTO> taskCommandDto=jacksonProcessing(request);
+
+        /*Set<TagCommandDTO> tagCommandDto=taskCommandDto.getTag();
+        //String tagString=tagCommandDto.
+        Set<TagCommandDTO> tagCommand=new HashSet<>();
+        String tagString="";
+        for (TagCommandDTO tag:tagCommandDto){
+            tagString=tag.getStr()+" ";
+        }
+        tagString=tagString.trim();
+        for(String tag:tagString.split("\\p{Zs}")){
+            if(tag.trim().isEmpty())continue;
+            TagCommandDTO tagCommandDTO=new TagCommandDTO();
+            tagCommandDTO.setStr(tag.trim());
+            tagCommand.add(tagCommandDTO);
+        }
+        taskCommandDto.setTag(tagCommand);
+         */
         //TaskCommandDtoEntityMapper taskMapper=new TaskCommandDtoEntityMapperImpl();
         //TaskDTO taskDTO=taskMapper.toDTO(taskEntity);
         TaskService taskService=(TaskService) servletContext.getAttribute("service");
         System.out.println("taskCommandDTO"+taskCommandDto);
-        boolean boolSuccess=taskService.editTask(taskCommandDto);
+        boolean boolSuccess=false;
+        for (TaskCommandDTO taskCommand:taskCommandDto) {
+            boolSuccess = taskService.editTask(taskCommand);//(taskCommandDto)
+        }
         if (boolSuccess==true){
             response.setStatus(200);
         }else response.setStatus(404);
@@ -105,8 +130,11 @@ public class ViewListOfTasksServlet extends HttpServlet {
         Logger logger=(Logger)servletContext.getAttribute("logger");
         SessionObject sessionObject=(SessionObject) currentSession.getAttribute("session");
         TaskService taskService=(TaskService) servletContext.getAttribute("service");
-        TaskCommandDTO taskCommandDto=jacksonProcessing(request);
-        TaskDTO taskDTO=taskService.createTask(taskCommandDto);
+        List<TaskCommandDTO> taskCommandDto=jacksonProcessing(request);
+        TaskDTO taskDTO=null;
+        for(TaskCommandDTO taskCommand:taskCommandDto) {
+            taskDTO = taskService.createTask(taskCommand);//taskCommandDto
+        }
         ObjectMapper objectMapper = new ObjectMapper();
         //objectMapper.configure(SerializationFeature.INDENT_OUTPUT, true);
         String fromDtoToJson="";
@@ -122,7 +150,7 @@ public class ViewListOfTasksServlet extends HttpServlet {
         out.println(fromDtoToJson);
         out.close();
     }
-    private TaskCommandDTO jacksonProcessing(HttpServletRequest request)throws IOException{
+    private List<TaskCommandDTO> jacksonProcessing(HttpServletRequest request)throws IOException{
         ServletContext servletContext = getServletContext();
         HttpSession currentSession = request.getSession();
         SessionObject sessionObject=(SessionObject) currentSession.getAttribute("session");
@@ -141,15 +169,44 @@ public class ViewListOfTasksServlet extends HttpServlet {
         }catch(JsonProcessingException e){
             throw new IOException("Cant process JSon file",e);
         }
-        return taskCommandDto;
+        //taskCommandDto.
+        Set<TagCommandDTO> tagCommandDto=taskCommandDto.getTag();
+        //String tagString=tagCommandDto.
+        String tagString="";
+        for (TagCommandDTO tag:tagCommandDto){
+            tagString=tag.getStr()+" ";
+        }
+        Set<TagCommandDTO> tagCommand=new HashSet<>();
+        tagString=tagString.trim();
+        List<TaskCommandDTO> taskSet=new ArrayList<>();
+        for(String tag:tagString.split("\\p{Zs}")){
+            tag=tag.trim();
+            if(tag.isEmpty())continue;
+            Long tagId=taskService.getIdOfTag(tag);
+            //TaskCommandNew taskCommandNew=new
+            TagCommandDTO tagCommandDTO=new TagCommandDTO();
+            tagCommandDTO.setStr(tag);
+            tagCommandDTO.setTag_id(tagId);
+            tagCommand.add(tagCommandDTO);
+            //TaskCommandDTO taskComm=taskCommandDto.toBuilder().tag(tagCommand).build();
+            //taskSet.add(taskComm);
+        }
+        //logger.info("tagCommand"+tagCommand);
+        taskCommandDto.setTag(tagCommand);
+        taskSet.add(taskCommandDto);//Удали костыль
+        return taskSet;//taskCommandDto;
     }
     @Override
     public void doDelete(HttpServletRequest request, HttpServletResponse response) throws ServletException,IOException{
         ServletContext servletContext = getServletContext();
         TaskService taskService=(TaskService) servletContext.getAttribute("service");
-        TaskCommandDTO taskCommandDto=jacksonProcessing(request);
-        boolean isSuccessFull=taskService.deleteTask(taskCommandDto);
+        List<TaskCommandDTO> taskCommandDto=jacksonProcessing(request);
+        boolean isSuccessFull=false;
+        for(TaskCommandDTO taskCommand:taskCommandDto) {
+            isSuccessFull = taskService.deleteTask(taskCommand);//(taskCommandDto)
+        }
         if (isSuccessFull)response.setStatus(200);
         else response.setStatus(404);
     }
+
 }

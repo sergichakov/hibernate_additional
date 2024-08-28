@@ -58,6 +58,6 @@ public class StartServlet extends HttpServlet {
         request.setAttribute("ipAddress",""+ipAddress);
         request.setAttribute("playerName",""+workerName);
 
-        //////////////////request.getRequestDispatcher("/index.jsp").include(request, response);
+        request.getRequestDispatcher("/my.html").include(request, response);
     }
 }

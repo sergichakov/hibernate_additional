@@ -3,8 +3,10 @@ package net.hibernate.additional.model;
 import jakarta.persistence.*;
 import lombok.*;
 import net.hibernate.additional.model_kill_this.TaskStatus;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.ZonedDateTime;
+import java.util.Date;
 import java.util.Set;
 
 @Getter
@@ -23,22 +25,26 @@ public class TaskEntity {
     private Long task_id;
     //@Column(name="name")
     private String name;
+    @CreationTimestamp
+    @Temporal(TemporalType.TIMESTAMP)
     @Column(name="create_date")
-    private ZonedDateTime createDate;
+    private Date createDate;
+    @Temporal(TemporalType.TIMESTAMP)
     @Column(name="start_date")
-    private ZonedDateTime startDate;
+    private Date startDate;
+    @Temporal(TemporalType.TIMESTAMP)
     @Column(name="end_date")
-    private ZonedDateTime endDate;
+    private Date endDate;
     @Enumerated(EnumType.STRING)
     private TaskStatus status;
     @Column(name="task_title")
     private String title;
     //@JsonIgnore
     @ToString.Exclude
-    @ManyToMany(cascade={CascadeType.MERGE,CascadeType.PERSIST},fetch = FetchType.LAZY)//,mappedBy = "task")//s_set")   CascadeType.PERSIST}
+    @ManyToMany(cascade={CascadeType.MERGE,CascadeType.PERSIST,CascadeType.REFRESH},fetch = FetchType.LAZY)//,mappedBy = "task")//s_set")   CascadeType.PERSIST}
     //@Column(name="tags_field")
 
-    @JoinTable(name="employee_task",
+    @JoinTable(name="tags_tasks",
             joinColumns=  @JoinColumn(name="tag_id", referencedColumnName="task_id"),
             inverseJoinColumns= @JoinColumn(name="task_id", referencedColumnName="tag_id") )
 
