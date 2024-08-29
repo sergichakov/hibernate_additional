@@ -1,14 +1,12 @@
 package net.hibernate.additional.service;
 
-import lombok.NoArgsConstructor;
 import net.hibernate.additional.command.TaskCommandDTO;
 import net.hibernate.additional.command.mapper.TaskCommandDtoEntityMapper;
-import net.hibernate.additional.command.mapper.TaskCommandDtoEntityMapperImpl;
 import net.hibernate.additional.dto.TaskDTO;
 import net.hibernate.additional.mapper.TaskEntityDtoMapper;
-import net.hibernate.additional.mapper.TaskEntityDtoMapperImpl;
 import net.hibernate.additional.model.TagEntity;
 import net.hibernate.additional.model.TaskEntity;
+import net.hibernate.additional.model_kill_this.TaskStatus;
 import net.hibernate.additional.repository.SessionRepoHelper;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
@@ -20,8 +18,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 
 //@NoArgsConstructor
 public class TaskService {
@@ -62,6 +60,11 @@ public class TaskService {
             taskEntities=tasks.list();
             for(TaskEntity taskEntity:taskEntities){
                 //TaskEntity unProxy= (TaskEntity) Hibernate.unproxy(taskEntity);
+
+                if (taskEntity.getStatus().equals(TaskStatus.IN_PROGRESS) && taskEntity.getEndDate()!=null){
+                    checkExpired(taskEntity);
+                }
+
                 TaskDTO task=taskMapper.toDTO(taskEntity);
                 dtoList.add(task);
             }
@@ -69,9 +72,27 @@ public class TaskService {
 
         return dtoList;
     }
+    private void checkExpired(TaskEntity taskEntity){
+        //System.out.println("listAllTasks status "+taskEntity.getStatus());
+        if(taskEntity.getEndDate().before(new Date())){
+            taskEntity.setStatus(TaskStatus.EXPIRED);
+            try(Session session=SessionRepoHelper.getSession().openSession()){
+                Transaction transaction=session.beginTransaction();
+                //session.merge(taskEntity);
+                transaction.commit();
+            }
+        }
+    }
     public boolean editTask(TaskCommandDTO commandDTO){
         TaskCommandDtoEntityMapper commandToEntityMapper=TaskCommandDtoEntityMapper.INSTANCE;//new TaskCommandDtoEntityMapperImpl() ;
         TaskEntity taskEntity=commandToEntityMapper.toModel(commandDTO);
+        Date dateOfCreation =null;
+        try(Session session = SessionRepoHelper.getSession().openSession()) {
+            TaskEntity taskTemporary=new TaskEntity();
+            session.load(taskTemporary,taskEntity.getTask_id());
+            dateOfCreation =taskTemporary.getCreateDate();
+            taskEntity.setCreateDate(dateOfCreation);
+        }
         TaskEntity taskEntityResponse=null;
         try(Session session = SessionRepoHelper.getSession().openSession()) {
             Transaction transaction=session.beginTransaction();
