@@ -12,7 +12,7 @@ import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@WebServlet(name = "startServlet", value = "/")
+@WebServlet(name = "startServlet", value = "/start")
 public class StartServlet extends HttpServlet {
     @Override
     public void init() throws ServletException {
@@ -58,6 +58,6 @@ public class StartServlet extends HttpServlet {
         request.setAttribute("ipAddress",""+ipAddress);
         request.setAttribute("playerName",""+workerName);
 
-        request.getRequestDispatcher("/my.html").include(request, response);
+        request.getRequestDispatcher("/html/my1.htm.jsp").include(request, response);
     }
 }

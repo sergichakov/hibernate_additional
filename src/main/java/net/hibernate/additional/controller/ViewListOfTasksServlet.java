@@ -50,9 +50,9 @@ public class ViewListOfTasksServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         ServletContext servletContext = getServletContext();
         HttpSession currentSession = request.getSession();
-        String pageNumber = request.getParameter("page");
-        String countOnPage = request.getParameter("count");
-        System.out.println(pageNumber+" pageNumber=countOnPage="+countOnPage);
+        String pageNumber = request.getParameter("pageNumber");
+        String pageSize = request.getParameter("pageSize");
+        System.out.println(pageNumber+" pageNumber=countOnPage="+pageSize);
 
         SessionObject sessionObject=(SessionObject) currentSession.getAttribute("session");
         TaskService taskService=(TaskService) servletContext.getAttribute("service");
@@ -70,7 +70,7 @@ public class ViewListOfTasksServlet extends HttpServlet {
             //request.setAttribute("hideForm",hideForm);
         }
 
-        List<TaskDTO> taskDTOList=taskService.listAllTasks(sessionObject.getName(),Integer.getInteger(pageNumber),Integer.getInteger(countOnPage));
+        List<TaskDTO> taskDTOList=taskService.listAllTasks(sessionObject.getName(),Integer.parseInt(pageNumber),Integer.parseInt(pageSize));
         ObjectMapper objectMapper = new ObjectMapper();
         //objectMapper.configure(SerializationFeature.INDENT_OUTPUT, true);
         String fromDtoToJson="";
@@ -176,9 +176,9 @@ public class ViewListOfTasksServlet extends HttpServlet {
         for (TagCommandDTO tag:tagCommandDto){
             tagString=tag.getStr()+" ";
         }
-        Set<TagCommandDTO> tagCommand=new HashSet<>();
+        Set<TagCommandDTO> tagCommandSet=new HashSet<>();
         tagString=tagString.trim();
-        List<TaskCommandDTO> taskSet=new ArrayList<>();
+        List<TaskCommandDTO> taskSet=new ArrayList<>();////эта строка не нужна и List вообще не нужен
         for(String tag:tagString.split("\\p{Zs}")){
             tag=tag.trim();
             if(tag.isEmpty())continue;
@@ -187,20 +187,23 @@ public class ViewListOfTasksServlet extends HttpServlet {
             TagCommandDTO tagCommandDTO=new TagCommandDTO();
             tagCommandDTO.setStr(tag);
             tagCommandDTO.setTag_id(tagId);
-            tagCommand.add(tagCommandDTO);
+            tagCommandSet.add(tagCommandDTO);
             //TaskCommandDTO taskComm=taskCommandDto.toBuilder().tag(tagCommand).build();
             //taskSet.add(taskComm);
         }
         //logger.info("tagCommand"+tagCommand);
-        taskCommandDto.setTag(tagCommand);
+        taskCommandDto.setTag(tagCommandSet);
         taskSet.add(taskCommandDto);//Удали костыль
         return taskSet;//taskCommandDto;
     }
     @Override
     public void doDelete(HttpServletRequest request, HttpServletResponse response) throws ServletException,IOException{
         ServletContext servletContext = getServletContext();
+        Logger logger=(Logger)servletContext.getAttribute("logger");
+
         TaskService taskService=(TaskService) servletContext.getAttribute("service");
         List<TaskCommandDTO> taskCommandDto=jacksonProcessing(request);
+        logger.info("deletion DTO="+taskCommandDto);
         boolean isSuccessFull=false;
         for(TaskCommandDTO taskCommand:taskCommandDto) {
             isSuccessFull = taskService.deleteTask(taskCommand);//(taskCommandDto)

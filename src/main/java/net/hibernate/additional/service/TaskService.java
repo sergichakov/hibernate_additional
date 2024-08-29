@@ -13,12 +13,15 @@ import net.hibernate.additional.repository.SessionRepoHelper;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.hibernate.exception.ConstraintViolationException;
+import org.hibernate.query.NativeQuery;
+import org.hibernate.query.Order;
 import org.hibernate.query.Query;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 //@NoArgsConstructor
 public class TaskService {
@@ -29,14 +32,19 @@ public class TaskService {
 
     //public List<TaskDTO> listAllTasks(Integer page,Integer count){return null;}
     //public static void main(String[] args){Integer page=null;Integer count=null;
-    public List<TaskDTO> listAllTasks(String userName,Integer page,Integer count){
+    public List<TaskDTO> listAllTasks(String userName,Integer pageNumber,Integer pageSize){
         TaskEntityDtoMapper taskMapper=TaskEntityDtoMapper.INSTANCE;//new TaskEntityDtoMapperImpl() ;
         List<TaskEntity> taskEntities=null;
-        List<TaskDTO> dtoList=new ArrayList<>();
 
-        if(count==null)count=5;
-        if (count>50)count=50;
-        if(page==null)page=0;
+/*        Integer fullCount=getAllCount();
+        if(pageNumber*pageSize<=fullCount){
+            pageNumber=pageNumber-1;
+        }*/
+        List<TaskDTO> dtoList=new ArrayList<>();
+        System.out.println("pageNumber="+pageNumber+" pageSize="+pageSize);
+        if(pageSize==null)pageSize=3;
+        if (pageSize>50)pageSize=50;
+        if(pageNumber==null)pageNumber=0;
 
 
         try (Session session = SessionRepoHelper.getSession().openSession()) {
@@ -48,8 +56,9 @@ public class TaskService {
                 tasks=session.createQuery("from TaskEntity where name= :userName",TaskEntity.class);
                 tasks.setParameter("userName",userName);
             }
-            tasks.setFirstResult(page);
-            tasks.setMaxResults(count);
+            tasks.setOrder(Order.asc(TaskEntity.class,"task_id"));
+            tasks.setFirstResult(pageNumber*pageSize);
+            tasks.setMaxResults(pageSize);
             taskEntities=tasks.list();
             for(TaskEntity taskEntity:taskEntities){
                 //TaskEntity unProxy= (TaskEntity) Hibernate.unproxy(taskEntity);
@@ -66,7 +75,7 @@ public class TaskService {
         TaskEntity taskEntityResponse=null;
         try(Session session = SessionRepoHelper.getSession().openSession()) {
             Transaction transaction=session.beginTransaction();
-            session.update(taskEntity);
+            session.merge(taskEntity);
             //taskEntityResponse=(TaskEntity) session.merge(taskEntity);
             transaction.commit();
         }catch(ConstraintViolationException e){
@@ -129,13 +138,23 @@ public class TaskService {
         //return 0;
     }
     public Long getIdOfTag(String tagStr){
-        Long singleTagId=null;
+        logger.info("getIdOfTag processing of string tagStr="+tagStr);
+        TagEntity singleTagId=null;
+        Long l=null;
         try(Session session=SessionRepoHelper.getSession().openSession()){
-            Query<Long> queryTag=session.createQuery("select t.tag_id from TagEntity t where t.str=:tagStr",Long.class);
+            Query<TagEntity> queryTag=session.createQuery("from TagEntity t where t.str=:tagStr",TagEntity.class);
             queryTag.setParameter("tagStr",tagStr);
-            singleTagId=queryTag.getSingleResult();
-
+            //singleTagId=queryTag.getSingleResult();
+            NativeQuery<Long> lon=session.createNativeQuery("select tag_id from tags where str=:tagStr",Long.class);
+            lon.setParameter("tagStr",tagStr);
+            l=lon.getSingleResultOrNull();
+            logger.info("something wrong in NativeQuery="+tagStr+ " long="+l );
+            //Optional<Long> optLong=queryTag.uniqueResultOptional();
+            //singleTagId=queryTag.uniqueResult();
         }
-        return singleTagId;
+        if (singleTagId!=null)logger.info("for tag="+tagStr+" found number="+singleTagId);
+        else System.out.println("singleTagId="+singleTagId);
+        //return singleTagId.getTag_id();
+        return l;
     }
 }

@@ -25,7 +25,7 @@ public class TestService {
         TaskEntity taskEntityTwo=null;
         try(Session session=sessionFactory.openSession()){
             Transaction transaction=session.beginTransaction();//session.tr
-
+                    session.saveOrUpdate(tagEntity);
             //taskEntityTwo=
                     session.saveOrUpdate(taskEntity);//update(taskEntity);"net.hibernate.additional.model.TaskEntity",
                     session.flush();
