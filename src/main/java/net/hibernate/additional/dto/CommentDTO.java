@@ -9,5 +9,5 @@ public class CommentDTO {
     private TaskDTO task;
 
     private String comment;
-
+    private UserDTO user;
 }

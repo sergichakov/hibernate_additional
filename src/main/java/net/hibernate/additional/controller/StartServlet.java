@@ -29,26 +29,30 @@ public class StartServlet extends HttpServlet {
         ServletContext servletContext = getServletContext();
         Logger logger=(Logger) servletContext.getAttribute("logger");
         SessionObject sessionObject=(SessionObject) currentSession.getAttribute("session");
-        logger.info("the Question game was started");
+
         String userName=request.getParameter("userName");
-        String workerName="Unknown";
-        String hideForm="";
-        if(userName!=null&& !userName.isEmpty()){
+        String password=request.getParameter("password");
+        logger.info("The "+userName+" User is registered");
+        //String workerName="Unknown";
+        //String hideForm="";
+/*        if(userName!=null&& !userName.isEmpty()){
             workerName=userName;
             sessionObject.setName(userName);
-            hideForm=" hidden='true' ";
-            request.setAttribute("hideForm",hideForm);
-        }
+            sessionObject.setPassword(password);
+            //hideForm=" hidden='true' ";
+            //request.setAttribute("hideForm",hideForm);
+        }*/
         if(sessionObject==null){
             sessionObject=SessionObject.builder()
                     .sessionId(currentSession.getId())
-                    .name("Unknown")
+                    .name(userName)
+                    .password(password)
                     .build();
             currentSession.setAttribute("session",sessionObject);
-        }else{
+        }/*else{
             workerName=sessionObject.getName();
-            hideForm=" hidden='true' ";
-            request.setAttribute("hideForm",hideForm);
+            //hideForm=" hidden='true' ";
+            //request.setAttribute("hideForm",hideForm);
             //sessionObject.setCurrentLevel(1);
         }
         String ipAddress = request.getHeader("X-FORWARDED-FOR");//getting ipAddress
@@ -57,7 +61,7 @@ public class StartServlet extends HttpServlet {
         }
         request.setAttribute("ipAddress",""+ipAddress);
         request.setAttribute("playerName",""+workerName);
-
-        request.getRequestDispatcher("/html/my1.htm.jsp").include(request, response);
+*/
+        request.getRequestDispatcher("/register.jsp").include(request, response);
     }
 }

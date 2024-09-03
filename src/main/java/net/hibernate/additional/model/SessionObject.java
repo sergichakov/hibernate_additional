@@ -10,4 +10,5 @@ public class SessionObject
 {
     private String name;
     private String sessionId;
+    private String password;
 }

@@ -7,6 +7,7 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.ZonedDateTime;
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 
 @Getter
@@ -39,26 +40,31 @@ public class TaskEntity {
     private TaskStatus status;
     @Column(name="task_title")
     private String title;
+    @OneToOne(fetch = FetchType.LAZY)
+    private UserEntity user;
+    //@ElementCollection//@OneToMany
+    //@Column(name="comment_list")
+    //private List<CommentEntity> commentList;
     //@JsonIgnore
-    @ToString.Exclude
+    //@ToString.Exclude
     @ManyToMany(cascade={CascadeType.MERGE,CascadeType.PERSIST,CascadeType.REFRESH},fetch = FetchType.LAZY)//,mappedBy = "task")//s_set")   CascadeType.PERSIST}
     //@Column(name="tags_field")
 
     @JoinTable(name="tags_tasks",
-            joinColumns=  @JoinColumn(name="tag_id", referencedColumnName="task_id"),
-            inverseJoinColumns= @JoinColumn(name="task_id", referencedColumnName="tag_id") )
-
+    joinColumns=  @JoinColumn(name="tag_id", referencedColumnName="task_id"),
+    inverseJoinColumns= @JoinColumn(name="task_id", referencedColumnName="tag_id") )
 
     private Set<TagEntity> tag;//=new HashSet<>();
     //@ElementCollection
     //@OneToOne
     //private TagEntity tan;
-
-    /*@OneToMany(cascade={CascadeType.MERGE,CascadeType.PERSIST},mappedBy = "task",fetch = FetchType.LAZY)//_of_task")
+    //@ToString.Exclude
+    @OneToMany(cascade={CascadeType.MERGE,CascadeType.PERSIST},fetch = FetchType.LAZY,mappedBy = "task")//_of_task")
     @Column(name="task_comments")//,unique = true)
     //@JoinColumn(name="id")
+    @ToString.Exclude
+    private List<CommentEntity> comments;
 
-    private Set<CommentEntity> comments;*/
     public void addTag(TagEntity tagEntity){
         this.tag.add(tagEntity);
     }

@@ -1,20 +1,24 @@
 package net.hibernate.additional.model;
 
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.Session;
         import org.hibernate.SessionFactory;
         import org.hibernate.Transaction;
+
+import java.util.List;
 import java.util.Properties;
 
 
 //import jakarta.persistence.*;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.query.Query;
+import org.hibernate.type.AbstractStandardBasicType;
+import org.hibernate.type.descriptor.java.JavaType;
+import org.hibernate.type.descriptor.java.ObjectJavaType;
+import org.hibernate.type.descriptor.jdbc.JdbcType;
+import org.hibernate.type.descriptor.jdbc.VarcharJdbcType;
 
 @Data
 @Entity
@@ -125,5 +129,20 @@ class Solution {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+}
+
+class Standard extends AbstractStandardBasicType<Message> {
+    public static final Standard INSTANCE = new Standard(VarcharJdbcType.INSTANCE, (JavaType)new ObjectJavaType());
+
+    public Standard(JdbcType jdbcType, JavaType<Message> javaType) {
+        super(jdbcType, javaType);
+
+    }
+
+
+    @Override
+    public String getName() {
+        return null;
     }
 }

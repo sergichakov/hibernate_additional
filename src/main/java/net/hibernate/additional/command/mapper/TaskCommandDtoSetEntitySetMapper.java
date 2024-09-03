@@ -9,7 +9,7 @@ import org.mapstruct.factory.Mappers;
 
 import java.util.Set;
 
-@Mapper(componentModel="default",uses=TagCommandDtoEntityMapper.class)
+@Mapper//(componentModel="default",uses=TagCommandDtoEntityMapper.class)
 public interface TaskCommandDtoSetEntitySetMapper {
     TaskCommandDtoSetEntitySetMapper INSTANCE= Mappers.getMapper(TaskCommandDtoSetEntitySetMapper.class);
 

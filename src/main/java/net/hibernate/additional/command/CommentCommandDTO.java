@@ -1,12 +1,13 @@
 package net.hibernate.additional.command;
 
-import net.hibernate.additional.model.TaskEntity;
-
+import lombok.Data;
+import net.hibernate.additional.dto.TaskDTO;
+@Data
 public class CommentCommandDTO {
     private Long id;
 
-    private TaskEntity task;
+    private TaskCommandDTO task;
 
     private String comment;
-
+    private UserCommandDTO user;
 }
