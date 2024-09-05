@@ -90,15 +90,20 @@ public class TestService {
             listMess.add(message);
             Users users=new Users();
             //users.setUser_id(50L);
-            users.setMessage(message);
+            //users.setMessage(message);
+            //Users users_users=session.get(Users.class,50L);
             message.setUser(users);
             Task task=new Task();
             task.setComments2(listMess);
-
+            //session.merge(users);
             session.persist(users);
             session.persist(message);
             session.persist(task);
             transaction.commit();
+            Message mess2=new Message();
+            session.load(mess2,1L);
+            System.out.println("mess2="+mess2);
         }
+
     }
 }

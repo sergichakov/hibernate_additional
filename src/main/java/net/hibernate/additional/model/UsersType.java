@@ -25,9 +25,11 @@ import java.util.Objects;
     }
 }*/
 public class UsersType implements UserType<Users> {
+    public static final UsersType INSTANCE=new UsersType();
     private Users usersValue=null;
-    public UsersType(Users users){
-        this.usersValue=users;
+    public UsersType(){//Users users){
+        //super(Users.class);
+        //this.usersValue=users;
     }
 
     @Override
@@ -77,8 +79,10 @@ public class UsersType implements UserType<Users> {
     public void nullSafeSet(PreparedStatement st, Users value, int index, SharedSessionContractImplementor session) throws SQLException {
         if (value == null) {
             st.setNull(index, SqlTypes.LONGVARCHAR);
+
+        }else {
+            st.setLong(index, value.getUser_id());
         }
-        st.setLong(index,value.getUser_id());
     }
 
     @Override

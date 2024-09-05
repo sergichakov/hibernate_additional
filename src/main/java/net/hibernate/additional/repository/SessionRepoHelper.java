@@ -15,10 +15,10 @@ public class SessionRepoHelper {
         Properties properties = new Properties();
         properties.setProperty("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
         properties.setProperty("hibernate.connection.driver_class", "org.postgresql.Driver");
-        properties.setProperty("hibernate.connection.url", "jdbc:postgresql://localhost:25432/sergej");
+        properties.setProperty("hibernate.connection.url", "jdbc:postgresql://localhost:5432/postgres");
         properties.setProperty("hibernate.connection.username", "anton");
         properties.setProperty("hibernate.connection.password", "anton");
-        properties.setProperty("hibernate.hbm2ddl.auto", "create-drop");
+        properties.setProperty("hibernate.hbm2ddl.auto", "validate");
         properties.setProperty("hibernate.show_sql", "true");
 
         sessionFactory=new Configuration()
@@ -32,10 +32,10 @@ public class SessionRepoHelper {
                 .addAnnotatedClass(Task.class)
                 .addAnnotatedClass(Message.class)
                 .addAnnotatedClass(Users.class)
-                /*.registerTypeContributor( (typeContributions, serviceRegistry) -> {
+                .registerTypeContributor( (typeContributions, serviceRegistry) -> {
                     typeContributions.contributeType( UsersType.INSTANCE );
 
-                })*/
+                })
                 .buildSessionFactory();
     }
     public static SessionFactory getSession(){
