@@ -29,7 +29,8 @@ public class TaskDTO {
     private UserDTO user;
     private String title;
     private Set<TagDTO> tag;//TagEntity
-    private List<CommentDTO> comment;
+
+   // private List<CommentDTO> comment;
    ///////////////////////////////////// private Set<CommentDTO> comments;//CommentEntity
 
 }

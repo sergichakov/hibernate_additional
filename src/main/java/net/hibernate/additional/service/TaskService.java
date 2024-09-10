@@ -3,9 +3,14 @@ package net.hibernate.additional.service;
 import net.hibernate.additional.command.TaskCommandDTO;
 import net.hibernate.additional.command.mapper.TaskCommandDtoEntityMapper;
 import net.hibernate.additional.dto.TaskDTO;
+import net.hibernate.additional.dto.UserDTO;
+import net.hibernate.additional.exception.AuthenticationException;
+import net.hibernate.additional.exception.NoPermissionException;
 import net.hibernate.additional.mapper.TaskEntityDtoMapper;
+import net.hibernate.additional.model.SessionObject;
 import net.hibernate.additional.model.TagEntity;
 import net.hibernate.additional.model.TaskEntity;
+import net.hibernate.additional.model.UserEntity;
 import net.hibernate.additional.model_kill_this.TaskStatus;
 import net.hibernate.additional.repository.SessionRepoHelper;
 import org.hibernate.Session;
@@ -30,7 +35,7 @@ public class TaskService {
 
     //public List<TaskDTO> listAllTasks(Integer page,Integer count){return null;}
     //public static void main(String[] args){Integer page=null;Integer count=null;
-    public List<TaskDTO> listAllTasks(String userName,Integer pageNumber,Integer pageSize){
+    public List<TaskDTO> listAllTasks(SessionObject sessionObject, Integer pageNumber, Integer pageSize) throws AuthenticationException {
         TaskEntityDtoMapper taskMapper=TaskEntityDtoMapper.INSTANCE;//new TaskEntityDtoMapperImpl() ;
         List<TaskEntity> taskEntities=null;
 
@@ -43,16 +48,29 @@ public class TaskService {
         if(pageSize==null)pageSize=3;
         if (pageSize>50)pageSize=50;
         if(pageNumber==null)pageNumber=0;
-
-
+        /*UserEntity userEntity=null;
+        try (Session session = SessionRepoHelper.getSession().openSession()) {
+            Query<UserEntity> userEntityQuery=session.createQuery("from UserEntity where nameName = : userN",UserEntity.class);
+            session.setProperty("userN",sessionObject.getName());
+            userEntity=userEntityQuery.getSingleResultOrNull();
+            if( ! userEntity.getPassword().equals(sessionObject.getPassword())){
+                return null;
+                //resp.sendRedirect(req.getContextPath() + "/redirected");
+            }
+        }*/
+        UserEntity userEntity=(new UserRegistrationService()).getUserEntity(sessionObject.getName(),sessionObject.getPassword());
+        if (userEntity==null)throw new AuthenticationException();
+        String userName= userEntity.getUserName();
         try (Session session = SessionRepoHelper.getSession().openSession()) {
             Query<TaskEntity> tasks;
             if(userName==null||userName.equals("ADMIN") ||userName.isEmpty() || userName.equals("Unknown")){
                 //request="from TaskEntity";
                 tasks=session.createQuery("from TaskEntity ",TaskEntity.class);
             }else {
-                tasks=session.createQuery("from TaskEntity where name= :userName",TaskEntity.class);
-                tasks.setParameter("userName",userName);
+                tasks=session.createQuery("from TaskEntity where user= :userN",TaskEntity.class);
+                System.out.println("userName="+userName);
+                tasks.setParameter("userN",userEntity);
+                System.out.println("tasks:="+tasks.list());
             }
             tasks.setOrder(Order.asc(TaskEntity.class,"task_id"));
             tasks.setFirstResult(pageNumber*pageSize);
@@ -68,6 +86,8 @@ public class TaskService {
                 TaskDTO task=taskMapper.toDTO(taskEntity);
                 dtoList.add(task);
             }
+        }catch(Throwable e){
+            e.printStackTrace();
         }
 
         return dtoList;
@@ -83,15 +103,20 @@ public class TaskService {
             }
         }
     }
-    public boolean editTask(TaskCommandDTO commandDTO){
+    public boolean editTask(TaskCommandDTO commandDTO, SessionObject sessionObject) throws AuthenticationException, NoPermissionException {
         TaskCommandDtoEntityMapper commandToEntityMapper=TaskCommandDtoEntityMapper.INSTANCE;//new TaskCommandDtoEntityMapperImpl() ;
         TaskEntity taskEntity=commandToEntityMapper.toModel(commandDTO);
+        UserDTO userDTO= getAuthenticatedUser(sessionObject);
+        if (!userDTO.getUserName().equals("ADMIN")) throw new NoPermissionException("user name= "+sessionObject.getName());
         Date dateOfCreation =null;
+        UserEntity userEntity=null;
         try(Session session = SessionRepoHelper.getSession().openSession()) {
             TaskEntity taskTemporary=new TaskEntity();
             session.load(taskTemporary,taskEntity.getTask_id());
             dateOfCreation =taskTemporary.getCreateDate();
+            userEntity=taskTemporary.getUser();
             taskEntity.setCreateDate(dateOfCreation);
+            taskEntity.setUser(userEntity);
         }
         TaskEntity taskEntityResponse=null;
         try(Session session = SessionRepoHelper.getSession().openSession()) {
@@ -107,23 +132,32 @@ public class TaskService {
         if (taskEntityResponse==null)return false;
         return true;
     }
-    public TaskDTO createTask(TaskCommandDTO commandDTO){
+    public TaskDTO createTask(TaskCommandDTO commandDTO,SessionObject sessionObject) throws AuthenticationException, NoPermissionException {
         TaskCommandDtoEntityMapper commandToEntityMapper=TaskCommandDtoEntityMapper.INSTANCE;//new TaskCommandDtoEntityMapperImpl() ;
+        UserDTO userDTO= getAuthenticatedUser(sessionObject);
+        if (!userDTO.getUserName().equals("ADMIN")) throw new NoPermissionException();
         TaskEntity taskEntity=commandToEntityMapper.toModel(commandDTO);
         TaskEntity taskEntityResponse;
         TaskDTO taskDTO=null;
+        UserRegistrationService userRegistrationService=new UserRegistrationService();
         try(Session session = SessionRepoHelper.getSession().openSession()) {
             Transaction transaction=session.beginTransaction();
+            UserEntity userEntity=taskEntity.getUser();
+
+            UserEntity userRegisteredEntity=userRegistrationService.getUserEntity(userEntity.getUserName(),null);
+
+            session.persist(userEntity);
             taskEntityResponse=(TaskEntity) session.merge(taskEntity);
         //    transaction.commit();
         //}
 
         //TaskEntity taskEntityResponse=editTaskProcessing(commandDTO);
-        System.out.println("taskEntity_createTask"+taskEntityResponse);
-        if (taskEntityResponse==null)return null;
+            System.out.println("taskEntity_createTask"+taskEntityResponse);
+            if (taskEntityResponse==null)return null;
         //TaskDTO taskDTO=null;
         //try (Session session = SessionRepoHelper.getSession().openSession()) {
             //Transaction transaction=session.beginTransaction();
+
             session.persist(taskEntityResponse);//saveOrUpdate
             session.flush();
             session.refresh(taskEntityResponse);
@@ -134,8 +168,10 @@ public class TaskService {
 
         return taskDTO;
     }
-    public boolean deleteTask(TaskCommandDTO commandDTO){
+    public boolean deleteTask(TaskCommandDTO commandDTO,SessionObject sessionObject) throws AuthenticationException, NoPermissionException {
         TaskCommandDtoEntityMapper commandToEntityMapper=TaskCommandDtoEntityMapper.INSTANCE;//new TaskCommandDtoEntityMapperImpl() ;
+        UserDTO userDTO= getAuthenticatedUser(sessionObject);
+        if (!userDTO.getUserName().equals("ADMIN")) throw new NoPermissionException();
         TaskEntity taskEntity=commandToEntityMapper.toModel(commandDTO);
         try(Session session = SessionRepoHelper.getSession().openSession()) {
             Transaction transaction=session.beginTransaction();
@@ -145,13 +181,21 @@ public class TaskService {
         return true;
     }
 
-    public int getAllCount() {
+    public int getAllCount(SessionObject sessionObject) throws AuthenticationException, NoPermissionException {
+        UserDTO userDTO=getAuthenticatedUser(sessionObject);
+
         try(Session session=SessionRepoHelper.getSession().openSession()){
             //Query<Long> query=session.createNamedQuery("namedQuery",Long.class);
             //query.setParameter(1,pageNumber);
             //query.setParameter(2,pageSize);
+            Query<Long> query1=null;
+            if (!userDTO.getUserName().equals("ADMIN")) {//throw new NoPermissionException();
+                query1 = session.createQuery("select count(*) from TaskEntity where name = :strName", Long.class);
+                query1.setParameter("strName",userDTO.getUserName());
+            } else{
+                query1 = session.createQuery("select count(*) from TaskEntity ", Long.class);
+            }
 
-            Query<Long> query1=session.createQuery("select count(*) from TaskEntity",Long.class);
             Integer i= query1.list().get(0).intValue();
             System.out.println("query namedQuery executed "+i);
             return i;//query.list().get(0).intValue();
@@ -177,5 +221,12 @@ public class TaskService {
         else System.out.println("singleTagId="+singleTagId);
         //return singleTagId.getTag_id();
         return l;
+    }
+    public UserDTO getAuthenticatedUser(SessionObject sessionObject) throws AuthenticationException, NoPermissionException {
+        UserDTO userDTO=(new UserRegistrationService()).getUserDTO(sessionObject.getName(),sessionObject.getPassword());
+
+        if (userDTO == null)throw new AuthenticationException();
+
+        return userDTO;
     }
 }

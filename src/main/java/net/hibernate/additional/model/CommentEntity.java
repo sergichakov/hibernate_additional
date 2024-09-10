@@ -30,12 +30,15 @@ public class CommentEntity {
     private TaskEntity task;
     @Column (name="comment_of_task", length=512)
     private String comment;
-    @OneToOne(cascade = {CascadeType.MERGE,CascadeType.PERSIST},fetch=FetchType.LAZY)
+    //@OneToOne(cascade = {CascadeType.MERGE,CascadeType.PERSIST},fetch=FetchType.LAZY)
     //@Column(name="user")
-    @JoinColumn(name = "user_id")
+    //@JoinColumn(name = "user_id")
     //@ElementCollection
     //@Type( (Class<Ent<String>>) ((Class)Ent.class))//(Class<String>)(UserEntity.class)//Class<String>)((Class)UserEntity.class))//type = "net.hibernate.additional.model.UserEntity")
+    @Type(UserDefinedType.class)
+    @Column(name="user_type")
     private UserEntity user;
+
     //@ElementCollection
     //private List<UserDTO> striKill;
     public void setTask(TaskEntity taskEntity){

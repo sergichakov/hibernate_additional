@@ -6,7 +6,7 @@
 
 <servlet>
 <servlet-name>module_3_name</servlet-name>
-<servlet-class>net.hibernate.additional.controller.StartServlet </servlet-class>
+<servlet-class>net.hibernate.additional.controller.RegisterServlet</servlet-class>
     <!--  <servlet-class>net.hibernate.additional.controller.ViewListOfTasksServlet</servlet-class>-->
   </servlet>
   <servlet-mapping>

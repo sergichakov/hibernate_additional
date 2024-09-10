@@ -25,7 +25,7 @@ import java.util.Objects;
 @Entity
 @Table(name="users")
 
-public class  UserEntity {//UserType<String> {
+public class  UserEntity implements Serializable{//UserType<String> {
 //    public class UserEntity implements UserType{
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE )
@@ -35,6 +35,8 @@ public class  UserEntity {//UserType<String> {
     @Column(name="password")
     @ToString.Exclude
     private String password;
+    @OneToOne(fetch=FetchType.LAZY)
+    private TaskEntity task;
 /*
     @Override
     public int getSqlType() {
@@ -129,10 +131,12 @@ public class  UserEntity {//UserType<String> {
     public T assemble(Serializable cached, Object owner) {
         return null;
     }
-*/        @OneToOne(cascade = {CascadeType.MERGE,CascadeType.PERSIST},fetch=FetchType.LAZY)
+*/
+
+/*    @OneToOne(cascade = {CascadeType.MERGE,CascadeType.PERSIST},fetch=FetchType.LAZY)
     //@Column(name="comment")
     @JoinColumn(name = "id")
 
     private CommentEntity comment;
-
+*/
 }

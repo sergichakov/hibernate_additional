@@ -40,7 +40,7 @@ public class TaskEntity {
     private TaskStatus status;
     @Column(name="task_title")
     private String title;
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne//(fetch = FetchType.LAZY)
     private UserEntity user;
     //@ElementCollection//@OneToMany
     //@Column(name="comment_list")

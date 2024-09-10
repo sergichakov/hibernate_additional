@@ -18,7 +18,7 @@ public class SessionRepoHelper {
         properties.setProperty("hibernate.connection.url", "jdbc:postgresql://localhost:5432/postgres");
         properties.setProperty("hibernate.connection.username", "anton");
         properties.setProperty("hibernate.connection.password", "anton");
-        properties.setProperty("hibernate.hbm2ddl.auto", "validate");
+        properties.setProperty("hibernate.hbm2ddl.auto", "update");
         properties.setProperty("hibernate.show_sql", "true");
 
         sessionFactory=new Configuration()
@@ -28,6 +28,10 @@ public class SessionRepoHelper {
                 .addAnnotatedClass(TagEntity.class)
                 .addAnnotatedClass(UserEntity.class)
                 .addAnnotatedClass(CommentEntity.class)
+                .registerTypeContributor( (typeContributions, serviceRegistry) -> {
+                    typeContributions.contributeType( UserDefinedType.INSTANCE );
+
+                })
                 //.registerTypeContributor( )
                 .addAnnotatedClass(Task.class)
                 .addAnnotatedClass(Message.class)

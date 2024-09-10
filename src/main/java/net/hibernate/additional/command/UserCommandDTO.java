@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.ToString;
 import net.hibernate.additional.command.CommentCommandDTO;
+import net.hibernate.additional.dto.TaskDTO;
 import net.hibernate.additional.model.CommentEntity;
 @Data
 public class UserCommandDTO {
@@ -13,6 +14,7 @@ public class UserCommandDTO {
 
     @ToString.Exclude
     private String password;
-
-    private CommentCommandDTO comment;
+    @ToString.Exclude
+    private TaskDTO task;
+    //private CommentCommandDTO comment;
 }

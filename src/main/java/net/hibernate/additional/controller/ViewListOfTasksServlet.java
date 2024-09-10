@@ -14,6 +14,8 @@ import jakarta.servlet.http.HttpSession;
 import net.hibernate.additional.command.TagCommandDTO;
 import net.hibernate.additional.command.TaskCommandDTO;
 import net.hibernate.additional.dto.TaskDTO;
+import net.hibernate.additional.exception.AuthenticationException;
+import net.hibernate.additional.exception.NoPermissionException;
 import net.hibernate.additional.model.SessionObject;
 import net.hibernate.additional.service.TaskService;
 import org.slf4j.Logger;
@@ -66,11 +68,21 @@ public class ViewListOfTasksServlet extends HttpServlet {
             currentSession.setAttribute("session",sessionObject);
         }else{
             workerName=sessionObject.getName();
-           //hideForm=" hidden='true' ";
-            //request.setAttribute("hideForm",hideForm);
+
         }
 
-        List<TaskDTO> taskDTOList=taskService.listAllTasks(sessionObject.getName(),Integer.parseInt(pageNumber),Integer.parseInt(pageSize));
+
+        //request.setAttribute("ObjectUserName",sessionObject.getName());
+        List<TaskDTO> taskDTOList=null;
+        try {
+            taskDTOList= taskService.listAllTasks(sessionObject, Integer.parseInt(pageNumber), Integer.parseInt(pageSize));
+        }catch(AuthenticationException e){
+            response.sendError(404, "User name= "+e.getMessage()+"; User name= "+workerName+" have wrong password or not registered");
+        }
+
+        /*if(taskDTOList==null){
+            response.sendError(404, "User name "+workerName+" have wrong password");
+        }*/
         ObjectMapper objectMapper = new ObjectMapper();
         //objectMapper.configure(SerializationFeature.INDENT_OUTPUT, true);
         String fromDtoToJson="";
@@ -93,6 +105,8 @@ public class ViewListOfTasksServlet extends HttpServlet {
     @Override
     public void doPut(HttpServletRequest request, HttpServletResponse response) throws ServletException,IOException{
         ServletContext servletContext = getServletContext();
+        HttpSession currentSession = request.getSession();
+        SessionObject sessionObject=(SessionObject) currentSession.getAttribute("session");
         List<TaskCommandDTO> taskCommandDto=jacksonProcessing(request);
 
         /*Set<TagCommandDTO> tagCommandDto=taskCommandDto.getTag();
@@ -117,7 +131,14 @@ public class ViewListOfTasksServlet extends HttpServlet {
         System.out.println("taskCommandDTO"+taskCommandDto);
         boolean boolSuccess=false;
         for (TaskCommandDTO taskCommand:taskCommandDto) {
-            boolSuccess = taskService.editTask(taskCommand);//(taskCommandDto)
+            try {
+                boolSuccess = taskService.editTask(taskCommand,sessionObject);//(taskCommandDto)
+            } catch (AuthenticationException e) {
+                response.sendError(404, e.getMessage()+sessionObject.getName()+" have wrong password or not registered");
+                //throw new RuntimeException(e);
+            }catch(NoPermissionException e){
+                response.sendError(404, e.getMessage()+sessionObject.getName()+" dont have permission");
+            }
         }
         if (boolSuccess==true){
             response.setStatus(200);
@@ -133,7 +154,14 @@ public class ViewListOfTasksServlet extends HttpServlet {
         List<TaskCommandDTO> taskCommandDto=jacksonProcessing(request);
         TaskDTO taskDTO=null;
         for(TaskCommandDTO taskCommand:taskCommandDto) {
-            taskDTO = taskService.createTask(taskCommand);//taskCommandDto
+            try {
+                taskDTO = taskService.createTask(taskCommand,sessionObject);//taskCommandDto
+            } catch (AuthenticationException e) {
+                response.sendError(404, "User name "+sessionObject.getName()+" have wrong password or not registered");
+            }catch(NoPermissionException e){
+                response.sendError(404, "User name "+sessionObject.getName()+" but need ADMIN permission");
+            }
+
         }
         ObjectMapper objectMapper = new ObjectMapper();
         //objectMapper.configure(SerializationFeature.INDENT_OUTPUT, true);
@@ -200,13 +228,30 @@ public class ViewListOfTasksServlet extends HttpServlet {
     public void doDelete(HttpServletRequest request, HttpServletResponse response) throws ServletException,IOException{
         ServletContext servletContext = getServletContext();
         Logger logger=(Logger)servletContext.getAttribute("logger");
-
+        HttpSession currentSession = request.getSession();
+        SessionObject sessionObject=(SessionObject) currentSession.getAttribute("session");
         TaskService taskService=(TaskService) servletContext.getAttribute("service");
         List<TaskCommandDTO> taskCommandDto=jacksonProcessing(request);
+        /*for(TaskCommandDTO taskCommand:taskCommandDto) {
+            try {
+                taskDTO = taskService.createTask(taskCommand,sessionObject);//taskCommandDto
+            } catch (AuthenticationException e) {
+                response.sendError(404, "User name "+sessionObject.getName()+" have wrong password or not registered");
+            }catch(NoPermissionException e){
+                response.sendError(404, "User name "+sessionObject.getName()+" but need ADMIN permission");
+            }
+
+        }*/
         logger.info("deletion DTO="+taskCommandDto);
         boolean isSuccessFull=false;
         for(TaskCommandDTO taskCommand:taskCommandDto) {
-            isSuccessFull = taskService.deleteTask(taskCommand);//(taskCommandDto)
+            try{
+                isSuccessFull = taskService.deleteTask(taskCommand,sessionObject);//(taskCommandDto)
+            } catch (AuthenticationException e) {
+                response.sendError(404, "User name= "+e.getMessage()+" name="+sessionObject.getName()+" have wrong password or not registered");
+            }catch(NoPermissionException e){
+                response.sendError(404, "User name= "+e.getMessage()+" name="+sessionObject.getName()+" but need ADMIN permission");
+            }
         }
         if (isSuccessFull)response.setStatus(200);
         else response.setStatus(404);
