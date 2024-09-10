@@ -2,10 +2,9 @@ package net.hibernate.additional.model;
 
 import jakarta.persistence.*;
 import lombok.*;
-import net.hibernate.additional.model_kill_this.TaskStatus;
+import net.hibernate.additional.object.TaskStatus;
 import org.hibernate.annotations.CreationTimestamp;
 
-import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;

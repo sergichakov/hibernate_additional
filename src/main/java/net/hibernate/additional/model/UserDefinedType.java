@@ -41,7 +41,7 @@ public class UserDefinedType implements UserType<UserEntity> {
 
     @Override
     public Class returnedClass() {
-        return Users.class;
+        return UserEntity.class;
     }
 
     @Override

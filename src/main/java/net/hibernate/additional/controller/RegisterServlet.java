@@ -3,7 +3,7 @@ package net.hibernate.additional.controller;
 //userName=ADMIN&password=ADMIN
 import net.hibernate.additional.dto.UserDTO;
 import net.hibernate.additional.exception.AuthenticationException;
-import net.hibernate.additional.model.SessionObject;
+import net.hibernate.additional.object.SessionObject;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;

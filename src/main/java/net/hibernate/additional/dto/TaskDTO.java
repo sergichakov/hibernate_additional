@@ -3,12 +3,9 @@ package net.hibernate.additional.dto;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
-import net.hibernate.additional.model.UserEntity;
-import net.hibernate.additional.model_kill_this.TaskStatus;
+import net.hibernate.additional.object.TaskStatus;
 
-import java.time.ZonedDateTime;
 import java.util.Date;
-import java.util.List;
 import java.util.Set;
 @Setter
 @Data

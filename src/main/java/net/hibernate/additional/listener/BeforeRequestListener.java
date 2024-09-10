@@ -1,13 +1,8 @@
 package net.hibernate.additional.listener;
 
-import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletRequestEvent;
 import jakarta.servlet.ServletRequestListener;
 import jakarta.servlet.annotation.WebListener;
-import jakarta.servlet.http.HttpSession;
-import net.hibernate.additional.model.SessionObject;
-
-import java.net.http.HttpRequest;
 
 @WebListener
 public class BeforeRequestListener  implements ServletRequestListener {

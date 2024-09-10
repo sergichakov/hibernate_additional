@@ -1,18 +1,12 @@
 package net.hibernate.additional.service;
 
-import jakarta.servlet.http.HttpSession;
 import net.hibernate.additional.command.CommentCommandDTO;
 //import net.hibernate.additional.command.CommandDTO;
 import net.hibernate.additional.command.UserCommandDTO;
 import net.hibernate.additional.command.mapper.CommentCommandDtoEntityMapper;
-import net.hibernate.additional.command.mapper.TaskCommandDtoEntityMapper;
 import net.hibernate.additional.dto.CommentDTO;
-import net.hibernate.additional.dto.TaskDTO;
 import net.hibernate.additional.mapper.CommentEntityDtoMapper;
 import net.hibernate.additional.model.CommentEntity;
-import net.hibernate.additional.model.SessionObject;
-import net.hibernate.additional.model.TaskEntity;
-import net.hibernate.additional.model_kill_this.TaskStatus;
 import net.hibernate.additional.repository.SessionRepoHelper;
 import org.hibernate.Session;
 import org.hibernate.Transaction;

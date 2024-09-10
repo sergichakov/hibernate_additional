@@ -1,5 +1,4 @@
 package net.hibernate.additional.controller;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -16,7 +15,7 @@ import net.hibernate.additional.command.TaskCommandDTO;
 import net.hibernate.additional.dto.TaskDTO;
 import net.hibernate.additional.exception.AuthenticationException;
 import net.hibernate.additional.exception.NoPermissionException;
-import net.hibernate.additional.model.SessionObject;
+import net.hibernate.additional.object.SessionObject;
 import net.hibernate.additional.service.TaskService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -1,9 +1,8 @@
 package net.hibernate.additional.command;
 
 import lombok.*;
-import net.hibernate.additional.model_kill_this.TaskStatus;
+import net.hibernate.additional.object.TaskStatus;
 
-import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.Set;
 @Data

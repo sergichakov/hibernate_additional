@@ -7,7 +7,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import net.hibernate.additional.model.SessionObject;
+import net.hibernate.additional.object.SessionObject;
 import net.hibernate.additional.service.TaskService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

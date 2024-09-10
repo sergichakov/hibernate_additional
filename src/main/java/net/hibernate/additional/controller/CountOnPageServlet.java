@@ -10,10 +10,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import net.hibernate.additional.exception.AuthenticationException;
 import net.hibernate.additional.exception.NoPermissionException;
-import net.hibernate.additional.model.SessionObject;
+import net.hibernate.additional.object.SessionObject;
 import net.hibernate.additional.service.TaskService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.PrintWriter;

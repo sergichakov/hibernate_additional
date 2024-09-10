@@ -33,13 +33,6 @@ public class SessionRepoHelper {
 
                 })
                 //.registerTypeContributor( )
-                .addAnnotatedClass(Task.class)
-                .addAnnotatedClass(Message.class)
-                .addAnnotatedClass(Users.class)
-                .registerTypeContributor( (typeContributions, serviceRegistry) -> {
-                    typeContributions.contributeType( UsersType.INSTANCE );
-
-                })
                 .buildSessionFactory();
     }
     public static SessionFactory getSession(){
