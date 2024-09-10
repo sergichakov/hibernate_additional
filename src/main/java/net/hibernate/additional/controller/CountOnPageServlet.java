@@ -11,6 +11,7 @@ import jakarta.servlet.http.HttpSession;
 import net.hibernate.additional.exception.AuthenticationException;
 import net.hibernate.additional.exception.NoPermissionException;
 import net.hibernate.additional.object.SessionObject;
+import net.hibernate.additional.repository.SessionRepoHelper;
 import net.hibernate.additional.service.TaskService;
 
 import java.io.IOException;
@@ -25,7 +26,7 @@ public class CountOnPageServlet extends HttpServlet {
 
 
         //try{
-        TaskService taskService=new TaskService();
+        TaskService taskService=new TaskService(new SessionRepoHelper());
         servletContext.setAttribute("service",taskService);
         /*}catch(IOException e) {
             logger.error("cant instantiate QuestionService "+ e.getMessage());

@@ -8,6 +8,7 @@ import net.hibernate.additional.dto.CommentDTO;
 import net.hibernate.additional.mapper.CommentEntityDtoMapper;
 import net.hibernate.additional.model.CommentEntity;
 import net.hibernate.additional.repository.SessionRepoHelper;
+import net.hibernate.additional.repository.SessionRepository;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.hibernate.exception.ConstraintViolationException;
@@ -21,12 +22,17 @@ import java.util.List;
 
 public class CommentService {
     private Logger logger= null;
+    private SessionRepository sessionRepoHelper;
     public CommentService(){
+        logger= LoggerFactory.getLogger(TaskService.class);
+    }
+    public CommentService(SessionRepository sessionRepoHelper){
+        this.sessionRepoHelper=sessionRepoHelper;
         logger= LoggerFactory.getLogger(TaskService.class);
     }
     public List<CommentDTO>listAllComments(Long taskId,String userName){
         List<CommentEntity> commentList=null;
-        try (Session session = SessionRepoHelper.getSession().openSession()) {
+        try (Session session = sessionRepoHelper.getSession().openSession()) {
             Query<CommentEntity> comments;
             if (userName == null || userName.equals("ADMIN") || userName.isEmpty() || userName.equals("Unknown")) {
                 //request="from TaskEntity";
@@ -51,7 +57,7 @@ public class CommentService {
         CommentEntity commentEntity=commentCommandDtoEntityMapper.toModel(commentCommandDto);
         //HttpSession currentSession = request.getSession();
         //SessionObject sessionObject=(SessionObject) currentSession.getAttribute("session");
-        try(Session session = SessionRepoHelper.getSession().openSession()) {
+        try(Session session = sessionRepoHelper.getSession().openSession()) {
             Transaction transaction=session.beginTransaction();
             session.merge(commentEntity);
             transaction.commit();
@@ -64,7 +70,7 @@ public class CommentService {
     public void createComment(CommentCommandDTO commentCommandDTO, UserCommandDTO userCommandDTO){
         CommentCommandDtoEntityMapper commentCommandToEntityMapper=CommentCommandDtoEntityMapper.INSTANCE;//new TaskCommandDtoEntityMapperImpl() ;
         CommentEntity commentEntity=commentCommandToEntityMapper.toModel(commentCommandDTO);
-        try(Session session = SessionRepoHelper.getSession().openSession()){
+        try(Session session = sessionRepoHelper.getSession().openSession()){
             Transaction transaction=session.beginTransaction();
             session.persist(commentEntity);
             transaction.commit();
@@ -73,7 +79,7 @@ public class CommentService {
     public boolean deleteComment(CommentCommandDTO commandDTO,UserCommandDTO userCommandDTO){
         CommentCommandDtoEntityMapper commandToEntityMapper=CommentCommandDtoEntityMapper.INSTANCE;//new TaskCommandDtoEntityMapperImpl() ;
         CommentEntity commentEntity=commandToEntityMapper.toModel(commandDTO);
-        try(Session session = SessionRepoHelper.getSession().openSession()) {
+        try(Session session = sessionRepoHelper.getSession().openSession()) {
             Transaction transaction=session.beginTransaction();
             session.remove(commentEntity);
             transaction.commit();

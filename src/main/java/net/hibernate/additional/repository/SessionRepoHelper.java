@@ -9,7 +9,7 @@ import org.hibernate.cfg.Configuration;
 
 import java.util.Properties;
 
-public class SessionRepoHelper {
+public class SessionRepoHelper implements SessionRepository{
     private static volatile SessionFactory sessionFactory;
     static {
         Properties properties = new Properties();
@@ -35,9 +35,7 @@ public class SessionRepoHelper {
                 //.registerTypeContributor( )
                 .buildSessionFactory();
     }
-    public static SessionFactory getSession(){
-
-
+    public  SessionFactory getSession(){
 
         return sessionFactory;
     }

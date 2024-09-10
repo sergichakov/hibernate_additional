@@ -30,9 +30,9 @@ public class  UserEntity implements Serializable{//UserType<String> {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE )
     private Long user_id;
-    @Column(name="user_name")
+    @Column(name="user_name",length=100)
     private String userName;
-    @Column(name="password")
+    @Column(name="password",length=100)
     @ToString.Exclude
     private String password;
     @OneToOne(fetch=FetchType.LAZY)

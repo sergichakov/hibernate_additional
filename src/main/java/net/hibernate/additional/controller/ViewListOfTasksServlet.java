@@ -16,6 +16,7 @@ import net.hibernate.additional.dto.TaskDTO;
 import net.hibernate.additional.exception.AuthenticationException;
 import net.hibernate.additional.exception.NoPermissionException;
 import net.hibernate.additional.object.SessionObject;
+import net.hibernate.additional.repository.SessionRepoHelper;
 import net.hibernate.additional.service.TaskService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,7 +39,7 @@ public class ViewListOfTasksServlet extends HttpServlet {
 
 
         //try{
-            TaskService taskService=new TaskService();
+            TaskService taskService=new TaskService(new SessionRepoHelper());
             servletContext.setAttribute("service",taskService);
         /*}catch(IOException e) {
             logger.error("cant instantiate QuestionService "+ e.getMessage());

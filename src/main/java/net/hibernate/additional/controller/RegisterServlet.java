@@ -11,6 +11,7 @@ import jakarta.servlet.http.*;
 
 import java.io.IOException;
 
+import net.hibernate.additional.repository.SessionRepoHelper;
 import net.hibernate.additional.service.UserRegistrationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,7 +82,7 @@ public class RegisterServlet extends HttpServlet {
         request.setAttribute("ipAddress",""+ipAddress);
         request.setAttribute("playerName",""+workerName);
 */
-        UserRegistrationService userRegistrationService=new UserRegistrationService();
+        UserRegistrationService userRegistrationService=new UserRegistrationService(new SessionRepoHelper());
         UserDTO isAuth= null;
         try {
             isAuth = userRegistrationService.getUserDTO(userName,password);

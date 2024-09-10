@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import net.hibernate.additional.object.SessionObject;
+import net.hibernate.additional.repository.SessionRepoHelper;
 import net.hibernate.additional.service.TaskService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +24,7 @@ public class StartServlet extends HttpServlet {
 
 
         //try{
-        TaskService taskService = new TaskService();
+        TaskService taskService = new TaskService(new SessionRepoHelper());
         servletContext.setAttribute("service", taskService);
         /*}catch(IOException e) {
             logger.error("cant instantiate QuestionService "+ e.getMessage());

@@ -5,6 +5,7 @@ import net.hibernate.additional.exception.AuthenticationException;
 import net.hibernate.additional.mapper.UserEntityDtoMapper;
 import net.hibernate.additional.model.UserEntity;
 import net.hibernate.additional.repository.SessionRepoHelper;
+import net.hibernate.additional.repository.SessionRepository;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.hibernate.query.Query;
@@ -12,9 +13,13 @@ import org.hibernate.query.Query;
 import java.util.List;
 
 public class UserRegistrationService {
+    SessionRepository sessionRepoHelper=null;
+    public UserRegistrationService(SessionRepository sessionRepoHelper){
+        this.sessionRepoHelper=sessionRepoHelper;
+    }
     public UserEntity registerUser(String userName, String password){
         UserEntity userEntity=null;
-        try(Session session= SessionRepoHelper.getSession().openSession()){
+        try(Session session= sessionRepoHelper.getSession().openSession()){
             Transaction transaction=session.beginTransaction();
             userEntity=new UserEntity();
             userEntity.setUserName(userName);
@@ -36,7 +41,7 @@ public class UserRegistrationService {
         if (userName == null) throw new AuthenticationException("Given userName is null= " + userName);
         //session.setProperty("usergetName());
         UserEntity userEntity = null;
-        try (Session session = SessionRepoHelper.getSession().openSession()) {//join fetch ue.user_id
+        try (Session session = sessionRepoHelper.getSession().openSession()) {//join fetch ue.user_id
             Query<UserEntity> userEntityQuery = session.createQuery("from UserEntity ue  where ue.userName = :userN", UserEntity.class);
             userEntityQuery.setParameter("userN", userName);
             List<UserEntity> listEntity = userEntityQuery.list();
@@ -74,7 +79,7 @@ public class UserRegistrationService {
     }
     /*public UserDTO getUserDTO(){
         UserEntity userEntity=null;
-        try(Session session = SessionRepoHelper.getSession().openSession()){
+        try(Session session = sessionRepoHelper.getSession().openSession()){
 
         }
     }*/
@@ -82,7 +87,7 @@ public class UserRegistrationService {
         if (userName == null) throw new AuthenticationException("Given userName is null= " + userName);
         //session.setProperty("usergetName());
         UserEntity userEntity = null;
-        try (Session session = SessionRepoHelper.getSession().openSession()) {
+        try (Session session = sessionRepoHelper.getSession().openSession()) {
             Query<UserEntity> userEntityQuery = session.createQuery("from UserEntity where userName = :userN", UserEntity.class);
             userEntityQuery.setParameter("userN", userName);
             List<UserEntity> listEntity = userEntityQuery.list();

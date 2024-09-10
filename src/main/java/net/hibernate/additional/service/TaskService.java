@@ -13,6 +13,7 @@ import net.hibernate.additional.model.TaskEntity;
 import net.hibernate.additional.model.UserEntity;
 import net.hibernate.additional.object.TaskStatus;
 import net.hibernate.additional.repository.SessionRepoHelper;
+import net.hibernate.additional.repository.SessionRepository;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.hibernate.exception.ConstraintViolationException;
@@ -29,10 +30,15 @@ import java.util.List;
 //@NoArgsConstructor
 public class TaskService {
     private Logger logger= null;
+    private SessionRepository sessionRepoHelper;
+
     public TaskService(){
         logger=LoggerFactory.getLogger(TaskService.class);
     }
-
+    public TaskService(SessionRepository sessionRepoHelper){
+        this.sessionRepoHelper=sessionRepoHelper;
+        logger=LoggerFactory.getLogger(TaskService.class);
+    }
     //public List<TaskDTO> listAllTasks(Integer page,Integer count){return null;}
     //public static void main(String[] args){Integer page=null;Integer count=null;
     public List<TaskDTO> listAllTasks(SessionObject sessionObject, Integer pageNumber, Integer pageSize) throws AuthenticationException {
@@ -49,7 +55,7 @@ public class TaskService {
         if (pageSize>50)pageSize=50;
         if(pageNumber==null)pageNumber=0;
         /*UserEntity userEntity=null;
-        try (Session session = SessionRepoHelper.getSession().openSession()) {
+        try (Session session = sessionRepoHelper.getSession().openSession()) {
             Query<UserEntity> userEntityQuery=session.createQuery("from UserEntity where nameName = : userN",UserEntity.class);
             session.setProperty("userN",sessionObject.getName());
             userEntity=userEntityQuery.getSingleResultOrNull();
@@ -58,10 +64,10 @@ public class TaskService {
                 //resp.sendRedirect(req.getContextPath() + "/redirected");
             }
         }*/
-        UserEntity userEntity=(new UserRegistrationService()).getUserEntity(sessionObject.getName(),sessionObject.getPassword());
+        UserEntity userEntity=(new UserRegistrationService(new SessionRepoHelper())).getUserEntity(sessionObject.getName(),sessionObject.getPassword());
         if (userEntity==null)throw new AuthenticationException();
         String userName= userEntity.getUserName();
-        try (Session session = SessionRepoHelper.getSession().openSession()) {
+        try (Session session = sessionRepoHelper.getSession().openSession()) {
             Query<TaskEntity> tasks;
             if(userName==null||userName.equals("ADMIN") ||userName.isEmpty() || userName.equals("Unknown")){
                 //request="from TaskEntity";
@@ -96,7 +102,7 @@ public class TaskService {
         //System.out.println("listAllTasks status "+taskEntity.getStatus());
         if(taskEntity.getEndDate().before(new Date())){
             taskEntity.setStatus(TaskStatus.EXPIRED);
-            try(Session session=SessionRepoHelper.getSession().openSession()){
+            try(Session session=sessionRepoHelper.getSession().openSession()){
                 Transaction transaction=session.beginTransaction();
                 //session.merge(taskEntity);
                 transaction.commit();
@@ -110,7 +116,7 @@ public class TaskService {
         if (!userDTO.getUserName().equals("ADMIN")) throw new NoPermissionException("user name= "+sessionObject.getName());
         Date dateOfCreation =null;
         UserEntity userEntity=null;
-        try(Session session = SessionRepoHelper.getSession().openSession()) {
+        try(Session session = sessionRepoHelper.getSession().openSession()) {
             TaskEntity taskTemporary=new TaskEntity();
             session.load(taskTemporary,taskEntity.getTask_id());
             dateOfCreation =taskTemporary.getCreateDate();
@@ -119,7 +125,7 @@ public class TaskService {
             taskEntity.setUser(userEntity);
         }
         TaskEntity taskEntityResponse=null;
-        try(Session session = SessionRepoHelper.getSession().openSession()) {
+        try(Session session = sessionRepoHelper.getSession().openSession()) {
             Transaction transaction=session.beginTransaction();
             session.merge(taskEntity);
             //taskEntityResponse=(TaskEntity) session.merge(taskEntity);
@@ -139,8 +145,8 @@ public class TaskService {
         TaskEntity taskEntity=commandToEntityMapper.toModel(commandDTO);
         TaskEntity taskEntityResponse;
         TaskDTO taskDTO=null;
-        UserRegistrationService userRegistrationService=new UserRegistrationService();
-        try(Session session = SessionRepoHelper.getSession().openSession()) {
+        UserRegistrationService userRegistrationService=new UserRegistrationService(new SessionRepoHelper());
+        try(Session session = sessionRepoHelper.getSession().openSession()) {
             Transaction transaction=session.beginTransaction();
             UserEntity userEntity=taskEntity.getUser();
 
@@ -155,7 +161,7 @@ public class TaskService {
             System.out.println("taskEntity_createTask"+taskEntityResponse);
             if (taskEntityResponse==null)return null;
         //TaskDTO taskDTO=null;
-        //try (Session session = SessionRepoHelper.getSession().openSession()) {
+        //try (Session session = sessionRepoHelper.getSession().openSession()) {
             //Transaction transaction=session.beginTransaction();
 
             session.persist(taskEntityResponse);//saveOrUpdate
@@ -173,7 +179,7 @@ public class TaskService {
         UserDTO userDTO= getAuthenticatedUser(sessionObject);
         if (!userDTO.getUserName().equals("ADMIN")) throw new NoPermissionException();
         TaskEntity taskEntity=commandToEntityMapper.toModel(commandDTO);
-        try(Session session = SessionRepoHelper.getSession().openSession()) {
+        try(Session session = sessionRepoHelper.getSession().openSession()) {
             Transaction transaction=session.beginTransaction();
             session.remove(taskEntity);
             transaction.commit();
@@ -184,7 +190,7 @@ public class TaskService {
     public int getAllCount(SessionObject sessionObject) throws AuthenticationException, NoPermissionException {
         UserDTO userDTO=getAuthenticatedUser(sessionObject);
 
-        try(Session session=SessionRepoHelper.getSession().openSession()){
+        try(Session session=sessionRepoHelper.getSession().openSession()){
             //Query<Long> query=session.createNamedQuery("namedQuery",Long.class);
             //query.setParameter(1,pageNumber);
             //query.setParameter(2,pageSize);
@@ -206,7 +212,7 @@ public class TaskService {
         logger.info("getIdOfTag processing of string tagStr="+tagStr);
         TagEntity singleTagId=null;
         Long l=null;
-        try(Session session=SessionRepoHelper.getSession().openSession()){
+        try(Session session=sessionRepoHelper.getSession().openSession()){
             Query<TagEntity> queryTag=session.createQuery("from TagEntity t where t.str=:tagStr",TagEntity.class);
             queryTag.setParameter("tagStr",tagStr);
             //singleTagId=queryTag.getSingleResult();
@@ -223,7 +229,7 @@ public class TaskService {
         return l;
     }
     public UserDTO getAuthenticatedUser(SessionObject sessionObject) throws AuthenticationException, NoPermissionException {
-        UserDTO userDTO=(new UserRegistrationService()).getUserDTO(sessionObject.getName(),sessionObject.getPassword());
+        UserDTO userDTO=(new UserRegistrationService(new SessionRepoHelper())).getUserDTO(sessionObject.getName(),sessionObject.getPassword());
 
         if (userDTO == null)throw new AuthenticationException();
 
