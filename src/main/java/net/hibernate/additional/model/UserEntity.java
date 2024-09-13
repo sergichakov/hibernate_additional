@@ -18,6 +18,7 @@ import java.util.Objects;
 
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 @Data
 @ToString
 @Setter

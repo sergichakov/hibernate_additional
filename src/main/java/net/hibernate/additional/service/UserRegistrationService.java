@@ -13,7 +13,7 @@ import org.hibernate.query.Query;
 import java.util.List;
 
 public class UserRegistrationService {
-    SessionRepository sessionRepoHelper=null;
+    private volatile SessionRepository sessionRepoHelper=null;
     public UserRegistrationService(SessionRepository sessionRepoHelper){
         this.sessionRepoHelper=sessionRepoHelper;
     }
@@ -41,6 +41,7 @@ public class UserRegistrationService {
         if (userName == null) throw new AuthenticationException("Given userName is null= " + userName);
         //session.setProperty("usergetName());
         UserEntity userEntity = null;
+
         try (Session session = sessionRepoHelper.getSession().openSession()) {//join fetch ue.user_id
             Query<UserEntity> userEntityQuery = session.createQuery("from UserEntity ue  where ue.userName = :userN", UserEntity.class);
             userEntityQuery.setParameter("userN", userName);
@@ -51,8 +52,10 @@ public class UserRegistrationService {
 
             ////userEntity=userEntityQuery.getSingleResultOrNull();
             if (userEntity == null) {
-                //userEntity = registerUser(userName, password);
-                return null;
+                if (password==null|| password.isEmpty())return null;
+
+                userEntity = registerUser(userName, password);
+                return userEntity;
                 //throw new AuthenticationException("No such userName= "+userName);
             }
             if (userEntity.getPassword() == null) {
@@ -83,7 +86,7 @@ public class UserRegistrationService {
 
         }
     }*/
-    public UserEntity getUserEntity222222222222222(String userName,String password) throws AuthenticationException {
+/*    public UserEntity getUserEntity222222222222222(String userName,String password) throws AuthenticationException {
         if (userName == null) throw new AuthenticationException("Given userName is null= " + userName);
         //session.setProperty("usergetName());
         UserEntity userEntity = null;
@@ -118,4 +121,6 @@ public class UserRegistrationService {
             return userEntity;
         }
     }
+
+ */
 }

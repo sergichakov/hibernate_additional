@@ -1,5 +1,14 @@
 package net.hibernate.additional.service;
 
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.Persistence;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import liquibase.Liquibase;
+import liquibase.database.Database;
+import liquibase.database.DatabaseFactory;
+import liquibase.database.jvm.JdbcConnection;
+import liquibase.exception.LiquibaseException;
+import liquibase.resource.ClassLoaderResourceAccessor;
 import net.hibernate.additional.command.TaskCommandDTO;
 import net.hibernate.additional.command.mapper.TaskCommandDtoEntityMapper;
 import net.hibernate.additional.dto.TaskDTO;
@@ -7,6 +16,7 @@ import net.hibernate.additional.dto.UserDTO;
 import net.hibernate.additional.exception.AuthenticationException;
 import net.hibernate.additional.exception.NoPermissionException;
 import net.hibernate.additional.mapper.TaskEntityDtoMapper;
+import net.hibernate.additional.model.CommentEntity;
 import net.hibernate.additional.object.SessionObject;
 import net.hibernate.additional.model.TagEntity;
 import net.hibernate.additional.model.TaskEntity;
@@ -15,6 +25,7 @@ import net.hibernate.additional.object.TaskStatus;
 import net.hibernate.additional.repository.SessionRepoHelper;
 import net.hibernate.additional.repository.SessionRepository;
 import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.exception.ConstraintViolationException;
 import org.hibernate.query.NativeQuery;
@@ -23,14 +34,123 @@ import org.hibernate.query.Query;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
+
 
 //@NoArgsConstructor
 public class TaskService {
+    public static void createTableConsistency()  {
+        try(
+                Connection connection= DriverManager.getConnection("jdbc:postgresql://localhost:32770/postgres",
+                        "anton","anton"))
+        {
+            String createTable="create table users ("
+                       + "user_id      bigint, "
+
+            +"password     varchar(255),"
+                +"user_name    varchar(255),"
+                +"task_task_id bigint)";
+            String insertTable="INSERT INTO users (task_task_id,user_name, password) VALUES " +
+                    "(2,'ADMIN', 'ADMIN');";
+
+            PreparedStatement statCreate = connection.prepareStatement(createTable);
+            Integer created = statCreate.executeUpdate();//.execute();
+
+            PreparedStatement statement = connection.prepareStatement(insertTable);
+            Integer resultSet = statement.executeUpdate();
+            //while (resultSet.next()) {
+
+            connection.close();
+        }catch (SQLException e){
+            e.printStackTrace();
+        }
+    }
+    public static void testConsistency(String str)  {
+        try(
+                Connection connection= DriverManager.getConnection("jdbc:postgresql://localhost:32770/postgres",
+                        "anton","anton"))
+                         {
+            PreparedStatement statement = connection.prepareStatement("select * from users");
+            ResultSet resultSet = statement.executeQuery();
+            //while (resultSet.next()) {
+            resultSet.next();
+            System.out.println("preparedStatement1:" + resultSet.getString(1) + " 2:"
+                    + resultSet.getString(2) + " 3:" + resultSet.getString(3)+" 4:"+ resultSet.getString(4));
+            connection.close();
+        }catch (SQLException e){
+            e.printStackTrace();
+        }
+        System.out.println(str);
+    }
+    public static void main(String[] args) throws SQLException, LiquibaseException, AuthenticationException {
+        TaskService taskService=new TaskService(new SessionRepo());
+        //taskService.setUp();
+        createTableConsistency();
+        SessionObject sessionObject=SessionObject.builder()
+                .name("ADMIN")
+                .password("ADMIN")
+                .build();
+        testConsistency("before listAllTasks");
+        try (Session session = (new SessionRepo()).getSession().openSession()) {}
+        //taskService.listAllTasks(sessionObject,1,3);
+        testConsistency("After listAllTasks");
+    }
+    private static class SessionRepo implements SessionRepository{
+
+        public SessionFactory getSession(){
+            //postgres.ses
+            //Persistence.createEntityManagerFactory();
+            System.setProperty("db.port", "32770");//postgres.getFirstMappedPort().toString());
+            EntityManagerFactory emf = Persistence.createEntityManagerFactory("my-persistence-unit");
+            SessionFactory sessionFactory = emf.unwrap(SessionFactory.class);
+            return sessionFactory;
+        }
+    }
+
+    void setUp() throws LiquibaseException, SQLException {
+        //static PostgreSQLContainer<?> postgre=new PostgreSQLContainer<>();
+        //Connection connection = DriverManager.getConnection(//"jdbc:postgresql://localhost:5432/testdb", "test","test");
+        //        postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
+        try(Connection connection=DriverManager.getConnection("jdbc:postgresql://localhost:32770/postgres","anton","anton");
+        Database dataBase = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(new JdbcConnection(connection))){
+        Liquibase liquibase = new Liquibase("liquibase/dev/dbchangelog.xml", new ClassLoaderResourceAccessor(), dataBase);
+            ///home/user/IdeaProjects/hibernate_additional/
+            liquibase.update();
+        }
+        //liquibase.close();
+        //dataBase.close();
+        //connection.close();
+        try (Session session = new SessionRepo().getSession().openSession()) {
+            Transaction transaction = session.beginTransaction();
+            UserEntity userEntity = UserEntity.builder()
+                    .userName("ADMIN")
+                    .password("ADMIN")
+                    .build();
+            CommentEntity commentEntity = CommentEntity.builder()
+                    .comment("First Comment")
+                    .user(userEntity)
+                    .build();
+            TaskEntity taskEntity = TaskEntity.builder()
+                    .name("task1")
+                    .comments(List.of(commentEntity))
+                    .user(userEntity)
+                    .build();
+            TagEntity tagEntity = TagEntity.builder()
+                    .str("tag1")
+                    .task(Set.of(taskEntity))
+                    .build();
+            taskEntity.setTag(Set.of(tagEntity));
+            session.persist(userEntity);
+            session.persist(taskEntity);
+            transaction.commit();
+        }
+    }
     private Logger logger= null;
-    private SessionRepository sessionRepoHelper;
+    private volatile SessionRepository sessionRepoHelper;
 
     public TaskService(){
         logger=LoggerFactory.getLogger(TaskService.class);
@@ -63,12 +183,15 @@ public class TaskService {
                 return null;
                 //resp.sendRedirect(req.getContextPath() + "/redirected");
             }
-        }*/
-        UserEntity userEntity=(new UserRegistrationService(new SessionRepoHelper())).getUserEntity(sessionObject.getName(),sessionObject.getPassword());
-        if (userEntity==null)throw new AuthenticationException();
+        }*/                     ////new SessionRepoHelper()
+        UserEntity userEntity=(new UserRegistrationService(sessionRepoHelper)).getUserEntity(sessionObject.getName(),sessionObject.getPassword());
+        if (userEntity==null)throw new AuthenticationException("no such user="+sessionObject.getName()+" password="+sessionObject.getPassword());
         String userName= userEntity.getUserName();
+        //testConsistency("before sessionRepohelper");///////////////////////////////////////
         try (Session session = sessionRepoHelper.getSession().openSession()) {
+            //testConsistency("after tasks");
             Query<TaskEntity> tasks;
+
             if(userName==null||userName.equals("ADMIN") ||userName.isEmpty() || userName.equals("Unknown")){
                 //request="from TaskEntity";
                 tasks=session.createQuery("from TaskEntity ",TaskEntity.class);
@@ -82,6 +205,7 @@ public class TaskService {
             tasks.setFirstResult(pageNumber*pageSize);
             tasks.setMaxResults(pageSize);
             taskEntities=tasks.list();
+
             for(TaskEntity taskEntity:taskEntities){
                 //TaskEntity unProxy= (TaskEntity) Hibernate.unproxy(taskEntity);
 
@@ -95,18 +219,18 @@ public class TaskService {
         }catch(Throwable e){
             e.printStackTrace();
         }
-
+        //testConsistency("after sessionRepoHelper");
         return dtoList;
     }
     private void checkExpired(TaskEntity taskEntity){
         //System.out.println("listAllTasks status "+taskEntity.getStatus());
         if(taskEntity.getEndDate().before(new Date())){
             taskEntity.setStatus(TaskStatus.EXPIRED);
-            try(Session session=sessionRepoHelper.getSession().openSession()){
+            /*try(Session session=sessionRepoHelper.getSession().openSession()){
                 Transaction transaction=session.beginTransaction();
                 //session.merge(taskEntity);
                 transaction.commit();
-            }
+            }*/
         }
     }
     public boolean editTask(TaskCommandDTO commandDTO, SessionObject sessionObject) throws AuthenticationException, NoPermissionException {
@@ -231,7 +355,7 @@ public class TaskService {
     public UserDTO getAuthenticatedUser(SessionObject sessionObject) throws AuthenticationException, NoPermissionException {
         UserDTO userDTO=(new UserRegistrationService(new SessionRepoHelper())).getUserDTO(sessionObject.getName(),sessionObject.getPassword());
 
-        if (userDTO == null)throw new AuthenticationException();
+        if (userDTO == null)throw new AuthenticationException("Get authenticated user");
 
         return userDTO;
     }

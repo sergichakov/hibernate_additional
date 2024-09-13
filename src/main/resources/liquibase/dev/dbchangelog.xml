@@ -5,7 +5,19 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
          http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+        <changeSet context="legacy" author="Melchakov Sergej" id="2-domain-some-domain">
+           <tagDatabase tag="initialState"/>
+      <!--        <rollback>
+                       DROP TABLE comments, tags, tags_tasks, tasks, users;
+                       DROP TABLE tags;
+                       DROP TABLE tags_tasks;
+                       DROP TABLE tasks;
+                       DROP TABLE users;
+
+                   </rollback>-->
+    </changeSet>
     <changeSet context="legacy" author="Melchakov Sergej" id="1-domain-some-domain">
+
         <sql>
             create table public.tags
             (
@@ -95,6 +107,7 @@
             DROP TABLE tasks;
             DROP TABLE users;   -->
         </rollback>
-
+        <!--<tagDatabase tag="""initialState"/>-->
     </changeSet>
+
 </databaseChangeLog>
