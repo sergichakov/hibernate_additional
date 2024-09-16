@@ -2,11 +2,14 @@ package net.hibernate.additional.service;
 
 import net.hibernate.additional.command.CommentCommandDTO;
 //import net.hibernate.additional.command.CommandDTO;
+import net.hibernate.additional.command.TaskCommandDTO;
 import net.hibernate.additional.command.UserCommandDTO;
 import net.hibernate.additional.command.mapper.CommentCommandDtoEntityMapper;
+import net.hibernate.additional.command.mapper.TaskCommandDtoEntityMapper;
 import net.hibernate.additional.dto.CommentDTO;
 import net.hibernate.additional.mapper.CommentEntityDtoMapper;
 import net.hibernate.additional.model.CommentEntity;
+import net.hibernate.additional.model.TaskEntity;
 import net.hibernate.additional.repository.SessionRepoHelper;
 import net.hibernate.additional.repository.SessionRepository;
 import org.hibernate.Session;
@@ -30,15 +33,19 @@ public class CommentService {
         this.sessionRepoHelper=sessionRepoHelper;
         logger= LoggerFactory.getLogger(TaskService.class);
     }
-    public List<CommentDTO>listAllComments(Long taskId,String userName){
+    public List<CommentDTO>listAllComments(TaskCommandDTO taskCommandDTO, String userName){
+        TaskCommandDtoEntityMapper commandToEntityMapper=TaskCommandDtoEntityMapper.INSTANCE;
+        TaskEntity taskEntity=commandToEntityMapper.toModel(taskCommandDTO);
         List<CommentEntity> commentList=null;
         try (Session session = sessionRepoHelper.getSession().openSession()) {
             Query<CommentEntity> comments;
             if (userName == null || userName.equals("ADMIN") || userName.isEmpty() || userName.equals("Unknown")) {
                 //request="from TaskEntity";
-                comments = session.createQuery("from CommentEntity ", CommentEntity.class);
+                comments = session.createQuery("from CommentEntity where task =:taskId", CommentEntity.class);
+                comments.setParameter("taskId", taskEntity);
             } else {
-                comments = session.createQuery("from CommentEntity where name= :userName", CommentEntity.class);
+                comments = session.createQuery("from CommentEntity where task =:taskId and name= :userName", CommentEntity.class);
+                comments.setParameter("taskId", taskEntity);
                 comments.setParameter("userName", userName);
             }
             comments.setOrder(Order.asc(CommentEntity.class, "user"));//user_id column
@@ -52,7 +59,7 @@ public class CommentService {
         }
         return commentDtoList;
     }
-    public boolean editComment(CommentCommandDTO commentCommandDto,UserCommandDTO userCommandDTO){
+    public boolean editComment(CommentCommandDTO commentCommandDto){//},UserCommandDTO userCommandDTO){
         CommentCommandDtoEntityMapper commentCommandDtoEntityMapper=CommentCommandDtoEntityMapper.INSTANCE;
         CommentEntity commentEntity=commentCommandDtoEntityMapper.toModel(commentCommandDto);
         //HttpSession currentSession = request.getSession();
@@ -67,7 +74,7 @@ public class CommentService {
         }
         return true;
     }
-    public void createComment(CommentCommandDTO commentCommandDTO, UserCommandDTO userCommandDTO){
+    public void createComment(CommentCommandDTO commentCommandDTO){//}, UserCommandDTO userCommandDTO){
         CommentCommandDtoEntityMapper commentCommandToEntityMapper=CommentCommandDtoEntityMapper.INSTANCE;//new TaskCommandDtoEntityMapperImpl() ;
         CommentEntity commentEntity=commentCommandToEntityMapper.toModel(commentCommandDTO);
         try(Session session = sessionRepoHelper.getSession().openSession()){
@@ -76,7 +83,7 @@ public class CommentService {
             transaction.commit();
         }
     }
-    public boolean deleteComment(CommentCommandDTO commandDTO,UserCommandDTO userCommandDTO){
+    public boolean deleteComment(CommentCommandDTO commandDTO){//},UserCommandDTO userCommandDTO){
         CommentCommandDtoEntityMapper commandToEntityMapper=CommentCommandDtoEntityMapper.INSTANCE;//new TaskCommandDtoEntityMapperImpl() ;
         CommentEntity commentEntity=commandToEntityMapper.toModel(commandDTO);
         try(Session session = sessionRepoHelper.getSession().openSession()) {

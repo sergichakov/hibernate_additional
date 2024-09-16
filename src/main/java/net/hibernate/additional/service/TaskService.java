@@ -48,7 +48,7 @@ public class TaskService {
             .withPassword("anton")
             .withReuse(true)///testcontainers.reuse.enable=true	//   ~/.testcontainers.properties
             .withDatabaseName("postgres");
-    public static void createTableConsistency()  {
+/*    public static void createTableConsistency()  {
         try(
                 Connection connection= DriverManager.getConnection(postgres.getJdbcUrl(),
                         postgres.getUsername(),postgres.getPassword()))
@@ -134,18 +134,12 @@ public class TaskService {
             return sessionFactory;
         }
     }
-
-    void setUp() throws LiquibaseException, SQLException {
+*/
+/*    void setUp() throws LiquibaseException, SQLException {
         //static PostgreSQLContainer<?> postgre=new PostgreSQLContainer<>();
         //Connection connection = DriverManager.getConnection(//"jdbc:postgresql://localhost:5432/testdb", "test","test");
         //        postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
-   /*      try(Connection connection= DriverManager.getConnection(postgres.getJdbcUrl(),
-                postgres.getUsername(),postgres.getPassword())){
-       Database dataBase = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(new JdbcConnection(connection))){
-        Liquibase liquibase = new Liquibase("liquibase/dev/dbchangelog.xml", new ClassLoaderResourceAccessor(), dataBase);
-            ///home/user/IdeaProjects/hibernate_additional/
-            liquibase.update();
-        }*/
+
         //liquibase.close();
         //dataBase.close();
         //connection.close();
@@ -173,7 +167,7 @@ public class TaskService {
             session.persist(taskEntity);
             transaction.commit();
         }
-    }
+    }*/
     private Logger logger= null;
     private volatile SessionRepository sessionRepoHelper;
 

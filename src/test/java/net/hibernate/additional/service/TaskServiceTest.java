@@ -99,7 +99,7 @@ class TaskServiceTest {
         }
         System.out.println(str);
     }
-//    @AfterAll
+    @AfterAll
     static void afterAll()  {
         postgres.stop();
     }
@@ -340,10 +340,5 @@ testConsistency("After everything");
 
             return sessionFactory;
         }
-    }
-    void start_script() throws SQLException, LiquibaseException {
-        setUp();
-        System.out.println("StartScript");
-        tearDown();
     }
 }
