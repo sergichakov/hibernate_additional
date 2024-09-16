@@ -27,26 +27,31 @@ import net.hibernate.additional.repository.SessionRepository;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
+import org.hibernate.cfg.Configuration;
 import org.hibernate.exception.ConstraintViolationException;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.query.Order;
 import org.hibernate.query.Query;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.testcontainers.containers.PostgreSQLContainer;
 
 import java.sql.*;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.Date;
-import java.util.List;
-import java.util.Set;
 
 
 //@NoArgsConstructor
 public class TaskService {
+    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:13.3")
+            .withUsername("anton")
+            .withPassword("anton")
+            .withReuse(true)///testcontainers.reuse.enable=true	//   ~/.testcontainers.properties
+            .withDatabaseName("postgres");
     public static void createTableConsistency()  {
         try(
-                Connection connection= DriverManager.getConnection("jdbc:postgresql://localhost:32770/postgres",
-                        "anton","anton"))
+                Connection connection= DriverManager.getConnection(postgres.getJdbcUrl(),
+                        postgres.getUsername(),postgres.getPassword()))
         {
             String createTable="create table users ("
                        + "user_id      bigint, "
@@ -71,8 +76,8 @@ public class TaskService {
     }
     public static void testConsistency(String str)  {
         try(
-                Connection connection= DriverManager.getConnection("jdbc:postgresql://localhost:32770/postgres",
-                        "anton","anton"))
+                Connection connection= DriverManager.getConnection(postgres.getJdbcUrl(),
+                        postgres.getUsername(),postgres.getPassword()))
                          {
             PreparedStatement statement = connection.prepareStatement("select * from users");
             ResultSet resultSet = statement.executeQuery();
@@ -87,9 +92,10 @@ public class TaskService {
         System.out.println(str);
     }
     public static void main(String[] args) throws SQLException, LiquibaseException, AuthenticationException {
+        postgres.start();
         TaskService taskService=new TaskService(new SessionRepo());
-        //taskService.setUp();
-        createTableConsistency();
+        taskService.setUp();
+        //createTableConsistency();
         SessionObject sessionObject=SessionObject.builder()
                 .name("ADMIN")
                 .password("ADMIN")
@@ -98,15 +104,33 @@ public class TaskService {
         try (Session session = (new SessionRepo()).getSession().openSession()) {}
         //taskService.listAllTasks(sessionObject,1,3);
         testConsistency("After listAllTasks");
+        postgres.stop();
     }
     private static class SessionRepo implements SessionRepository{
+        private static SessionFactory sessionFactory;
 
-        public SessionFactory getSession(){
-            //postgres.ses
-            //Persistence.createEntityManagerFactory();
-            System.setProperty("db.port", "32770");//postgres.getFirstMappedPort().toString());
-            EntityManagerFactory emf = Persistence.createEntityManagerFactory("my-persistence-unit");
-            SessionFactory sessionFactory = emf.unwrap(SessionFactory.class);
+        static {
+            Properties properties = new Properties();
+            properties.setProperty("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
+            properties.setProperty("hibernate.connection.driver_class", "org.postgresql.Driver");
+            properties.setProperty("hibernate.connection.url", postgres.getJdbcUrl());//"jdbc:postgresql://localhost:"+postgres.getJdbcUrl()+"/postgres");
+            properties.setProperty("hibernate.connection.username", postgres.getUsername());
+            properties.setProperty("hibernate.connection.password", postgres.getPassword());
+            properties.setProperty("hibernate.hbm2ddl.auto", "create-drop");
+            properties.setProperty("hibernate.show_sql", "true");
+
+            sessionFactory=new Configuration()
+
+                    .setProperties(properties)//.addPackage("net.hibernate_additional.repository")
+                    .addAnnotatedClass(TaskEntity.class)
+                    .addAnnotatedClass(TagEntity.class)
+                    .addAnnotatedClass(UserEntity.class)
+                    .addAnnotatedClass(CommentEntity.class)
+
+                    .buildSessionFactory();
+        }
+        public  SessionFactory getSession(){
+
             return sessionFactory;
         }
     }
@@ -115,12 +139,13 @@ public class TaskService {
         //static PostgreSQLContainer<?> postgre=new PostgreSQLContainer<>();
         //Connection connection = DriverManager.getConnection(//"jdbc:postgresql://localhost:5432/testdb", "test","test");
         //        postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
-        try(Connection connection=DriverManager.getConnection("jdbc:postgresql://localhost:32770/postgres","anton","anton");
-        Database dataBase = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(new JdbcConnection(connection))){
+   /*      try(Connection connection= DriverManager.getConnection(postgres.getJdbcUrl(),
+                postgres.getUsername(),postgres.getPassword())){
+       Database dataBase = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(new JdbcConnection(connection))){
         Liquibase liquibase = new Liquibase("liquibase/dev/dbchangelog.xml", new ClassLoaderResourceAccessor(), dataBase);
             ///home/user/IdeaProjects/hibernate_additional/
             liquibase.update();
-        }
+        }*/
         //liquibase.close();
         //dataBase.close();
         //connection.close();
@@ -187,10 +212,10 @@ public class TaskService {
         UserEntity userEntity=(new UserRegistrationService(sessionRepoHelper)).getUserEntity(sessionObject.getName(),sessionObject.getPassword());
         if (userEntity==null)throw new AuthenticationException("no such user="+sessionObject.getName()+" password="+sessionObject.getPassword());
         String userName= userEntity.getUserName();
-        //testConsistency("before sessionRepohelper");///////////////////////////////////////
+//        testConsistency("before sessionRepohelper");///////////////////////////////////////
         try (Session session = sessionRepoHelper.getSession().openSession()) {
-            //testConsistency("after tasks");
-            Query<TaskEntity> tasks;
+//            testConsistency("after tasks");
+            Query<TaskEntity> tasks=null;
 
             if(userName==null||userName.equals("ADMIN") ||userName.isEmpty() || userName.equals("Unknown")){
                 //request="from TaskEntity";
@@ -202,7 +227,7 @@ public class TaskService {
                 System.out.println("tasks:="+tasks.list());
             }
             tasks.setOrder(Order.asc(TaskEntity.class,"task_id"));
-            tasks.setFirstResult(pageNumber*pageSize);
+            tasks.setFirstResult((pageNumber)*pageSize);
             tasks.setMaxResults(pageSize);
             taskEntities=tasks.list();
 
@@ -235,32 +260,54 @@ public class TaskService {
     }
     public boolean editTask(TaskCommandDTO commandDTO, SessionObject sessionObject) throws AuthenticationException, NoPermissionException {
         TaskCommandDtoEntityMapper commandToEntityMapper=TaskCommandDtoEntityMapper.INSTANCE;//new TaskCommandDtoEntityMapperImpl() ;
-        TaskEntity taskEntity=commandToEntityMapper.toModel(commandDTO);
+
         UserDTO userDTO= getAuthenticatedUser(sessionObject);
         if (!userDTO.getUserName().equals("ADMIN")) throw new NoPermissionException("user name= "+sessionObject.getName());
         Date dateOfCreation =null;
-        UserEntity userEntity=null;
+        //UserEntity userEntity=null;
+        Boolean hasChanged=false;
         try(Session session = sessionRepoHelper.getSession().openSession()) {
+            Transaction transaction=session.beginTransaction();
+            TaskEntity taskEntity=commandToEntityMapper.toModel(commandDTO);
+
             TaskEntity taskTemporary=new TaskEntity();
-            session.load(taskTemporary,taskEntity.getTask_id());
+            //TaskEntity taskEntityResponse=null;
+            Long task_id=taskEntity.getTask_id();
+            session.load(taskTemporary,task_id);
             dateOfCreation =taskTemporary.getCreateDate();
-            userEntity=taskTemporary.getUser();
+            System.out.println("EditTask task_id="+taskEntity.getTask_id()+" dateOfCreation"+dateOfCreation);
+            UserEntity userEntity=taskTemporary.getUser();
+
             taskEntity.setCreateDate(dateOfCreation);
             taskEntity.setUser(userEntity);
+            session.merge(taskEntity);
+            /*session.refresh(taskEntity);
+            Set<TagEntity> tagEntitySet=taskEntity.getTag();
+            for (TagEntity tag:tagEntitySet){
+                tag.getTask().add(taskEntity);
+            }
+            System.out.println("taskService editTask="+taskEntity);
+            session.merge(taskEntity);
+
+             */
+            //ttaskEntityaskEntityResponse=(TaskEntity) session.merge(taskEntity);
+            if (task_id!=null) hasChanged=true;
+            hasChanged=true;
+            transaction.commit();
         }
-        TaskEntity taskEntityResponse=null;
-        try(Session session = sessionRepoHelper.getSession().openSession()) {
+
+        /*try(Session session = sessionRepoHelper.getSession().openSession()) {
             Transaction transaction=session.beginTransaction();
             session.merge(taskEntity);
             //taskEntityResponse=(TaskEntity) session.merge(taskEntity);
             transaction.commit();
-        }catch(ConstraintViolationException e){
+        }*/catch(ConstraintViolationException e){
             logger.info("attempt to insert new duplicate key into the table");
         }
         //return taskEntityResponse;
         //TaskEntity taskEntityResponse=editTaskProcessing(commandDTO);
-        if (taskEntityResponse==null)return false;
-        return true;
+
+        return hasChanged;
     }
     public TaskDTO createTask(TaskCommandDTO commandDTO,SessionObject sessionObject) throws AuthenticationException, NoPermissionException {
         TaskCommandDtoEntityMapper commandToEntityMapper=TaskCommandDtoEntityMapper.INSTANCE;//new TaskCommandDtoEntityMapperImpl() ;
@@ -269,14 +316,16 @@ public class TaskService {
         TaskEntity taskEntity=commandToEntityMapper.toModel(commandDTO);
         TaskEntity taskEntityResponse;
         TaskDTO taskDTO=null;
-        UserRegistrationService userRegistrationService=new UserRegistrationService(new SessionRepoHelper());
+        UserRegistrationService userRegistrationService=new UserRegistrationService(sessionRepoHelper);//new SessionRepoHelper());
         try(Session session = sessionRepoHelper.getSession().openSession()) {
             Transaction transaction=session.beginTransaction();
             UserEntity userEntity=taskEntity.getUser();
+            UserEntity userRegisteredEntity=null;
+            if(userEntity!=null) {
+                userRegisteredEntity = userRegistrationService.getUserEntity(userEntity.getUserName(), null);
+                session.persist(userEntity);
+            }
 
-            UserEntity userRegisteredEntity=userRegistrationService.getUserEntity(userEntity.getUserName(),null);
-
-            session.persist(userEntity);
             taskEntityResponse=(TaskEntity) session.merge(taskEntity);
         //    transaction.commit();
         //}
@@ -337,8 +386,8 @@ public class TaskService {
         TagEntity singleTagId=null;
         Long l=null;
         try(Session session=sessionRepoHelper.getSession().openSession()){
-            Query<TagEntity> queryTag=session.createQuery("from TagEntity t where t.str=:tagStr",TagEntity.class);
-            queryTag.setParameter("tagStr",tagStr);
+            //Query<TagEntity> queryTag=session.createQuery("from TagEntity t where t.str=:tagStr",TagEntity.class);
+            //queryTag.setParameter("tagStr",tagStr);
             //singleTagId=queryTag.getSingleResult();
             NativeQuery<Long> lon=session.createNativeQuery("select tag_id from tags where str=:tagStr",Long.class);
             lon.setParameter("tagStr",tagStr);
@@ -353,7 +402,7 @@ public class TaskService {
         return l;
     }
     public UserDTO getAuthenticatedUser(SessionObject sessionObject) throws AuthenticationException, NoPermissionException {
-        UserDTO userDTO=(new UserRegistrationService(new SessionRepoHelper())).getUserDTO(sessionObject.getName(),sessionObject.getPassword());
+        UserDTO userDTO=(new UserRegistrationService( sessionRepoHelper)).getUserDTO(sessionObject.getName(),sessionObject.getPassword());
 
         if (userDTO == null)throw new AuthenticationException("Get authenticated user");
 

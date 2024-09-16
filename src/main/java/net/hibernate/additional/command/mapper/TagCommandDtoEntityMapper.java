@@ -5,6 +5,7 @@ import net.hibernate.additional.mapper.TagEntityDtoMapper;
 import net.hibernate.additional.model.TagEntity;
 
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
 
@@ -12,6 +13,7 @@ import org.mapstruct.factory.Mappers;
 public interface TagCommandDtoEntityMapper {
     TagCommandDtoEntityMapper INSTANCE= Mappers.getMapper(TagCommandDtoEntityMapper.class);
     TagCommandDTO toDTO(TagEntity tag);
+    @Mapping(target = "task", ignore = true)
     TagEntity toModel(TagCommandDTO tagDTO);
 }
 
