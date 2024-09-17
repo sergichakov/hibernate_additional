@@ -7,7 +7,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
 import java.util.Set;
-@Mapper(componentModel="default")//,uses=TaskEntityDtoMapper.class )
+@Mapper(componentModel="default")
 public interface TagEntitySetDtoSetMapper {
     TagEntitySetDtoSetMapper INSTANCE= Mappers.getMapper(TagEntitySetDtoSetMapper.class);
     @Mapping(target = "task", ignore = true)

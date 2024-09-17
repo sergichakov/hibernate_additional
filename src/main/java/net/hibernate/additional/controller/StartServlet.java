@@ -21,18 +21,9 @@ public class StartServlet extends HttpServlet {
         Logger logger = LoggerFactory.getLogger(ViewListOfTasksServlet.class);
         ServletContext servletContext = getServletContext();
         servletContext.setAttribute("logger", logger);
-
-
-        //try{
         TaskService taskService = new TaskService(new SessionRepoHelper());
         servletContext.setAttribute("service", taskService);
-        /*}catch(IOException e) {
-            logger.error("cant instantiate QuestionService "+ e.getMessage());
-        }
-
-         */
     }
-
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         ServletContext servletContext = getServletContext();
         HttpSession currentSession = request.getSession();
@@ -40,7 +31,6 @@ public class StartServlet extends HttpServlet {
         request.setAttribute("ObjectUserName",sessionObject.getName());
         String pageNumber = request.getParameter("pageNumber");
         String pageSize = request.getParameter("pageSize");
-        System.out.println(pageNumber + " pageNumber=countOnPage=" + pageSize);
         if(sessionObject != null&& ! sessionObject.getName().equals("ADMIN")) {
             String hideForm = " hidden='true' ";
             request.setAttribute("hideForm", hideForm);

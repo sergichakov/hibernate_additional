@@ -37,16 +37,10 @@ public class CommentServlet extends HttpServlet {
         servletContext.setAttribute("logger", logger);
 
 
-        //try{
         CommentService commentService = new CommentService(new SessionRepoHelper());
         servletContext.setAttribute("service", commentService);
         UserRegistrationService registerService = new UserRegistrationService(new SessionRepoHelper());
         servletContext.setAttribute("registerService", registerService);
-        /*}catch(IOException e) {
-            logger.error("cant instantiate QuestionService "+ e.getMessage());
-        }
-
-         */
     }
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
         HttpSession currentSession = request.getSession();
@@ -70,14 +64,11 @@ public class CommentServlet extends HttpServlet {
         try {
             fromDtoToJson=objectMapper.writeValueAsString(commentDTOList);
         }catch(JsonProcessingException e){
-            System.out.println("EXCEPTION");
             logger.error("JSON processing exception");
         }
-        //List<TaskCommandDTO> taskCommandDto=jacksonProcessing(request);
         response.setStatus(200);
 
-        //System.out.println("fromDTOtoJSON"+fromDtoToJson);
-        response.setContentType("application/json");//"text/html;charset=UTF-8");
+        response.setContentType("application/json");
         PrintWriter out =  response.getWriter();
         out.println(fromDtoToJson);
         out.close();
@@ -99,14 +90,6 @@ public class CommentServlet extends HttpServlet {
             throw new IOException("Cant process JSon file",e);
         }
         SessionObject sessionObject=(SessionObject) currentSession.getAttribute("session");
-
-        /*UserRegistrationService registerService=(UserRegistrationService)servletContext.getAttribute("registerService");
-        try {
-            UserDTO userDTO = registerService.getUserDTO(sessionObject.getName(), sessionObject.getPassword());
-        }catch(AuthenticationException e){
-            e.printStackTrace();
-        }
-         */
         commentService.createComment(commentCommandDto);
     }
     protected void doPut(HttpServletRequest request, HttpServletResponse response) throws IOException {

@@ -9,12 +9,9 @@ import net.hibernate.additional.model.CommentEntity;
 @Data
 public class UserCommandDTO {
     private Long user_id;
-
     private String userName;
-
     @ToString.Exclude
     private String password;
     @ToString.Exclude
     private TaskDTO task;
-    //private CommentCommandDTO comment;
 }

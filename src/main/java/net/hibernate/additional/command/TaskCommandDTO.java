@@ -12,28 +12,12 @@ import java.util.Set;
 @Builder(toBuilder=true)
 public class TaskCommandDTO {
     private Long task_id;
-
     private String name;
-
     private Date createDate;
-
     private Date startDate;
-
     private Date endDate;
-
     private TaskStatus status;
-
     private UserCommandDTO user;
     private String title;
     private Set<TagCommandDTO> tag;//TagEntity
-
-    ////////////////////////////////private Set<CommentCommandDTO> comments;//CommentEntity
-    /*
-    @SuppressWarnings("unchecked")
-    @JsonProperty("tag")
-    public void convertTagToTask(Set<String> tags){
-        this.tag=tags;
-    }
-
-     */
 }

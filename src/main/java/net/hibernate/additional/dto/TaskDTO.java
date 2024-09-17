@@ -12,22 +12,12 @@ import java.util.Set;
 @Getter
 public class TaskDTO {
     private Long task_id;
-
     private String name;
-
     private Date createDate;
-
     private Date startDate;
-
     private Date endDate;
-
     private TaskStatus status;
-
     private UserDTO user;
     private String title;
     private Set<TagDTO> tag;//TagEntity
-
-   // private List<CommentDTO> comment;
-   ///////////////////////////////////// private Set<CommentDTO> comments;//CommentEntity
-
 }

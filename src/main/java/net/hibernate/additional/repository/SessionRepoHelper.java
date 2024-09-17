@@ -22,8 +22,7 @@ public class SessionRepoHelper implements SessionRepository{
         properties.setProperty("hibernate.show_sql", "true");
 
         sessionFactory=new Configuration()
-                //.configure()
-                .setProperties(properties)//.addPackage("net.hibernate_additional.repository")
+                .setProperties(properties)
                 .addAnnotatedClass(TaskEntity.class)
                 .addAnnotatedClass(TagEntity.class)
                 .addAnnotatedClass(UserEntity.class)
@@ -32,7 +31,6 @@ public class SessionRepoHelper implements SessionRepository{
                     typeContributions.contributeType( UserDefinedType.INSTANCE );
 
                 })
-                //.registerTypeContributor( )
                 .buildSessionFactory();
     }
     public  SessionFactory getSession(){

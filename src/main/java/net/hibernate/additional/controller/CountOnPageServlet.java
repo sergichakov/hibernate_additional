@@ -20,19 +20,9 @@ import java.io.PrintWriter;
 @WebServlet(name = "countServlet", value = "/task/count")
 public class CountOnPageServlet extends HttpServlet {
     public void init() {
-        //Logger logger = LoggerFactory.getLogger(ViewListOfTasksServlet.class);
         ServletContext servletContext = getServletContext();
-        //servletContext.setAttribute("logger",logger);
-
-
-        //try{
         TaskService taskService=new TaskService(new SessionRepoHelper());
         servletContext.setAttribute("service",taskService);
-        /*}catch(IOException e) {
-            logger.error("cant instantiate QuestionService "+ e.getMessage());
-        }
-
-         */
     }
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         ServletContext servletContext = getServletContext();
@@ -42,13 +32,11 @@ public class CountOnPageServlet extends HttpServlet {
         Integer count= null;
         try {
             count = taskService.getAllCount(sessionObject);
-
         } catch (AuthenticationException e) {
             response.sendError(404, "User name "+sessionObject.getName()+" have wrong password or not registered");
         }catch(NoPermissionException e){
             response.sendError(404, "User name "+sessionObject.getName()+" but need ADMIN permission");
         }
-
         PrintWriter out =  response.getWriter();
         out.println(count);
     }

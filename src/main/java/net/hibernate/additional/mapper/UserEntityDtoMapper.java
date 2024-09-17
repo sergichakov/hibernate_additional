@@ -8,7 +8,6 @@ import org.mapstruct.factory.Mappers;
 @Mapper
 public interface UserEntityDtoMapper {
     UserEntityDtoMapper INSTANCE= Mappers.getMapper(UserEntityDtoMapper.class);
-    //@Mapping(target = "password", ignore = true)
     UserDTO toDTO(UserEntity tag);
-    //UserEntity toModel(UserDTO tagDTO);
+    UserEntity toModel(UserDTO tagDTO);
 }

@@ -40,7 +40,6 @@ public class CommentService {
         try (Session session = sessionRepoHelper.getSession().openSession()) {
             Query<CommentEntity> comments;
             if (userName == null || userName.equals("ADMIN") || userName.isEmpty() || userName.equals("Unknown")) {
-                //request="from TaskEntity";
                 comments = session.createQuery("from CommentEntity where task =:taskId", CommentEntity.class);
                 comments.setParameter("taskId", taskEntity);
             } else {
@@ -53,7 +52,6 @@ public class CommentService {
         }
         List<CommentDTO>commentDtoList=new ArrayList<>();
         for(CommentEntity commentEntity:commentList){
-            //TaskEntity unProxy= (TaskEntity) Hibernate.unproxy(taskEntity);
             CommentDTO commentDto= CommentEntityDtoMapper.INSTANCE.toDTO(commentEntity);
             commentDtoList.add(commentDto);
         }
@@ -62,8 +60,6 @@ public class CommentService {
     public boolean editComment(CommentCommandDTO commentCommandDto){//},UserCommandDTO userCommandDTO){
         CommentCommandDtoEntityMapper commentCommandDtoEntityMapper=CommentCommandDtoEntityMapper.INSTANCE;
         CommentEntity commentEntity=commentCommandDtoEntityMapper.toModel(commentCommandDto);
-        //HttpSession currentSession = request.getSession();
-        //SessionObject sessionObject=(SessionObject) currentSession.getAttribute("session");
         try(Session session = sessionRepoHelper.getSession().openSession()) {
             Transaction transaction=session.beginTransaction();
             session.merge(commentEntity);

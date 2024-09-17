@@ -23,7 +23,6 @@ public class TaskEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY )
 
     private Long task_id;
-    //@Column(name="name")
     private String name;
     @CreationTimestamp
     @Temporal(TemporalType.TIMESTAMP)
@@ -41,26 +40,15 @@ public class TaskEntity {
     private String title;
     @OneToOne//(fetch = FetchType.LAZY)
     private UserEntity user;
-    //@ElementCollection//@OneToMany
-    //@Column(name="comment_list")
-    //private List<CommentEntity> commentList;
-    //@JsonIgnore
-    //@ToString.Exclude
     @ManyToMany(cascade={CascadeType.MERGE,CascadeType.PERSIST,CascadeType.REFRESH},fetch = FetchType.LAZY)//,mappedBy = "task")//s_set")   CascadeType.PERSIST}
-    //@Column(name="tags_field")
 
     @JoinTable(name="tags_tasks",
     joinColumns=  @JoinColumn(name="tag_id", referencedColumnName="task_id"),
     inverseJoinColumns= @JoinColumn(name="task_id", referencedColumnName="tag_id") )
 
-    private Set<TagEntity> tag;//=new HashSet<>();
-    //@ElementCollection
-    //@OneToOne
-    //private TagEntity tan;
-    //@ToString.Exclude
+    private Set<TagEntity> tag;
     @OneToMany(cascade={CascadeType.MERGE,CascadeType.PERSIST},fetch = FetchType.LAZY,mappedBy = "task")//_of_task")
-    @Column(name="task_comments")//,unique = true)
-    //@JoinColumn(name="id")
+    @Column(name="task_comments")
     @ToString.Exclude
     private List<CommentEntity> comments;
 
@@ -95,12 +83,7 @@ public class TaskEntity {
         final Object this$title = this.getTitle();
         final Object other$title = other.getTitle();
         if (this$title == null ? other$title != null : !this$title.equals(other$title)) return false;
-        /*final Object this$tag = this.getTag();
-        final Object other$tag = other.getTag();
-        if (this$tag == null ? other$tag != null : !this$tag.equals(other$tag)) return false;
-        */
         return true;
-
     }
 
     protected boolean canEqual(final Object other) {
@@ -124,28 +107,7 @@ public class TaskEntity {
         result = result * PRIME + ($status == null ? 43 : $status.hashCode());
         final Object $title = this.getTitle();
         result = result * PRIME + ($title == null ? 43 : $title.hashCode());
-        /*
-        final Object $tag = this.getTag();
-        result = result * PRIME + ($tag == null ? 43 : $tag.hashCode());
-        */
+
         return result;
-
     }
-    ////////////////////////////////public void addComment(CommentEntity commentEntity){ this.comments.add(commentEntity); }
-/*
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        TaskEntity that = (TaskEntity) o;
-        return task_id.equals(that.task_id) && Objects.equals(name, that.name) && Objects.equals(title, that.title);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(task_id, name, title);
-    }
-
- */
-
 }

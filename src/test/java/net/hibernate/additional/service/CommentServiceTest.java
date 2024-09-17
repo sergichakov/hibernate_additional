@@ -1,5 +1,4 @@
 package net.hibernate.additional.service;
-
 import liquibase.Liquibase;
 import liquibase.database.Database;
 import liquibase.database.DatabaseFactory;
@@ -25,7 +24,6 @@ import org.hibernate.cfg.Configuration;
 import org.hibernate.query.Query;
 import org.junit.jupiter.api.*;
 import org.testcontainers.containers.PostgreSQLContainer;
-
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.DriverManager;
@@ -34,10 +32,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
 class CommentServiceTest {
     CommentService commentService;
     CommentEntity commentEntity;
@@ -45,29 +41,25 @@ class CommentServiceTest {
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:13.3")
             .withUsername("anton")
             .withPassword("anton")
-            .withReuse(true)///testcontainers.reuse.enable=true	//   ~/.testcontainers.properties
+            .withReuse(true)
             .withDatabaseName("postgres");
     @BeforeAll
-    static void beforeAll() {//static void beforeAll
+    static void beforeAll() {
         sessionObject= SessionObject.builder()
                 .name("ADMIN")
                 .password("ADMIN")
                 .build();
         postgres.start();
-
-        //createTableConsistency();
     }
     @AfterEach
     void tearDown() throws SQLException, LiquibaseException {
-        Connection connection= DriverManager.getConnection(//"jdbc:postgresql://localhost:5432/testdb", "test","test");
+        Connection connection= DriverManager.getConnection(
                 postgres.getJdbcUrl(),postgres.getUsername(),postgres.getPassword());
         Database dataBase= DatabaseFactory.getInstance().findCorrectDatabaseImplementation(new JdbcConnection(connection));
         Liquibase liquibase=new Liquibase("liquibase/dev/dbchangelog.xml",new ClassLoaderResourceAccessor(),dataBase);
         liquibase.rollback("initialState","legacy");
         dataBase.close();
         connection.close();
-
-        System.out.printf("liquibase rollback");
     }
     @AfterAll
     static void afterAll()  {
@@ -75,17 +67,14 @@ class CommentServiceTest {
     }
     @BeforeEach
     void setUp() throws LiquibaseException, SQLException {
-        Connection connection= DriverManager.getConnection(//"jdbc:postgresql://localhost:5432/testdb", "test","test");
+        Connection connection= DriverManager.getConnection(
                 postgres.getJdbcUrl(),postgres.getUsername(),postgres.getPassword());
         Database dataBase= DatabaseFactory.getInstance().findCorrectDatabaseImplementation(new JdbcConnection(connection));
         Liquibase liquibase=new Liquibase("liquibase/dev/dbchangelog.xml",new ClassLoaderResourceAccessor(),dataBase);
         liquibase.update();
-        //liquibase.close();
         dataBase.close();
         connection.close();
-
         commentService =new CommentService(new CommentServiceTest.SessionRepo());
-        //TaskEntity taskEntity=null;
         TaskEntity taskEntity=null;
         try(Session session=new CommentServiceTest.SessionRepo().getSession().openSession()){
             Transaction transaction=session.beginTransaction();
@@ -97,7 +86,6 @@ class CommentServiceTest {
                     .comment("First Comment")
                     .user(userEntity)
                     .build();
-            //TaskEntity
             taskEntity= TaskEntity.builder()
                     .name("task1")
                     .comments(Arrays.asList(commentEntity))
@@ -115,54 +103,18 @@ class CommentServiceTest {
             session.persist(tagEntity);
             session.persist(userEntity);
             session.persist(taskEntity);
-            //taskEntity.setCreateDate(new Date(1212121212121L));//////////////
-            //session.merge(taskEntity);                          /////////////
-
-            //session.flush();
-
-            /*session.refresh(taskEntity);
-            session.flush();
-            taskEntity.setCreateDate(new Date(1212121212121L));//////////////
-            session.merge(taskEntity);
-            */
             transaction.commit();
         }
-
         try(Session session=new CommentServiceTest.SessionRepo().getSession().openSession()) {
-
             Transaction transaction = session.beginTransaction();
             taskEntity.setCreateDate(new Date(1212121212121L));
             session.merge(taskEntity);
             transaction.commit();
-            /*Query query=session.createNativeQuery("INSERT INTO tasks (create_date) VALUES "
-                            +"(:date);",TaskEntity.class);
-            query.setParameter("date",new Date(1212121212121L));
-            query.executeUpdate();
-
-             */
             Query<TaskEntity> newTask=session.createQuery("from TaskEntity",TaskEntity.class);
-            List<TaskEntity> newTaskEntity=newTask.list();//getSingleResult();
-            for(TaskEntity ta:newTaskEntity){
-                System.out.println("EDIT task ta="+ta);
-            }
-            //newTaskEntity.setCreateDate(new Date(1212121212121L));
-            //session.merge(newTaskEntity);
-/*
-            session.refresh(taskEntity);
-            session.flush();
-            taskEntity.setCreateDate(new Date(1212121212121L));//////////////
-            session.merge(taskEntity);                              ////////
+            List<TaskEntity> newTaskEntity=newTask.list();
 
-*/
-            //transaction.commit();
         }
-
-
-        System.out.printf("liquibase rebuild");
-
-
     }
-
     @Test
     void listAllComments() {
         Long taskId=0L;
@@ -172,16 +124,13 @@ class CommentServiceTest {
         try(Session session=new SessionRepo().getSession().openSession()) {
             Query<TaskEntity> newTask = session.createQuery("from TaskEntity", TaskEntity.class);
             taskEntity = newTask.list().get(0);
-            //taskId=taskEntity.getTask_id();
             userName=taskEntity.getUser().getUserName();
             TaskCommandDtoEntityMapper commandToEntityMapper=TaskCommandDtoEntityMapper.INSTANCE;
             taskCommandDTO=commandToEntityMapper.toDTO(taskEntity);
         }
-
         List<CommentDTO> commentDTOList= commentService.listAllComments(taskCommandDTO, userName);
         assertEquals("First Comment", commentDTOList.get(0).getComment());
     }
-
     @Test
     void editComment() {
         CommentCommandDTO commentCommandDTO=null;
@@ -189,8 +138,6 @@ class CommentServiceTest {
             Query<CommentEntity> editComment = session.createQuery("from CommentEntity", CommentEntity.class);
             CommentEntity commentEntity = editComment.list().get(0);
             commentEntity.setComment("changed Comment");
-            //taskId=taskEntity.getTask_id();
-            //userName=taskEntity.getUser().getUserName();
             CommentCommandDtoEntityMapper entityToCommandMapper=CommentCommandDtoEntityMapper.INSTANCE;
             commentCommandDTO=entityToCommandMapper.toDTO(commentEntity);
         }
@@ -202,9 +149,7 @@ class CommentServiceTest {
             changedComment = commentEntity.getComment();
         }
         assertEquals("changed Comment",changedComment);
-
     }
-
     @Test
     void createComment() {
         CommentCommandDTO commentCommandDTO=null;
@@ -226,19 +171,13 @@ class CommentServiceTest {
         }
         assertEquals(2,count);
     }
-
     @Test
     void deleteComment() {
         CommentCommandDTO commentCommandDTO=null;
         try(Session session=new SessionRepo().getSession().openSession()) {
             Query<TaskEntity> newTask = session.createQuery("from TaskEntity", TaskEntity.class);
             CommentEntity commentEntity = newTask.list().get(0).getComments().get(0);
-            /*CommentEntity commentEntity=CommentEntity.builder()
-                    .comment("Second comment")
-                    .task(taskEntity)
-                    .build();
-
-             */
+            
             CommentCommandDtoEntityMapper entityToCommandMapper=CommentCommandDtoEntityMapper.INSTANCE;
             commentCommandDTO=entityToCommandMapper.toDTO(commentEntity);
         }
@@ -252,29 +191,24 @@ class CommentServiceTest {
     }
     private static class SessionRepo implements SessionRepository {
         private static SessionFactory sessionFactory;
-
         static {
             Properties properties = new Properties();
             properties.setProperty("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
             properties.setProperty("hibernate.connection.driver_class", "org.postgresql.Driver");
-            properties.setProperty("hibernate.connection.url", postgres.getJdbcUrl());//"jdbc:postgresql://localhost:"+postgres.getJdbcUrl()+"/postgres");
+            properties.setProperty("hibernate.connection.url", postgres.getJdbcUrl());
             properties.setProperty("hibernate.connection.username", postgres.getUsername());
             properties.setProperty("hibernate.connection.password", postgres.getPassword());
             properties.setProperty("hibernate.hbm2ddl.auto", "create-drop");
             properties.setProperty("hibernate.show_sql", "true");
-
             sessionFactory=new Configuration()
-
-                    .setProperties(properties)//.addPackage("net.hibernate_additional.repository")
+                    .setProperties(properties)
                     .addAnnotatedClass(TaskEntity.class)
                     .addAnnotatedClass(TagEntity.class)
                     .addAnnotatedClass(UserEntity.class)
                     .addAnnotatedClass(CommentEntity.class)
-
                     .buildSessionFactory();
         }
         public  SessionFactory getSession(){
-
             return sessionFactory;
         }
     }

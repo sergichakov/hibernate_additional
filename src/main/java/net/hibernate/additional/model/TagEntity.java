@@ -24,16 +24,9 @@ public class TagEntity {
     @JsonIgnore
     @ToString.Exclude
     @ManyToMany(cascade={CascadeType.MERGE,CascadeType.PERSIST,CascadeType.REFRESH},fetch = FetchType.LAZY,mappedBy = "tag")//  CascadeType.PERSIST}
-    /*
-    @JoinTable(name="tags_tasks",
-        joinColumns=  @JoinColumn(name="task_id", referencedColumnName="tag_id"),
-        inverseJoinColumns= @JoinColumn(name="tag_id", referencedColumnName="task_id") )
-*/
-
-    //@Column(name="tasks_set",length=50)
-    private Set<TaskEntity> task;//=new HashSet<>();
+    private Set<TaskEntity> task;
     public void add(TaskEntity taskEntity){
-        //this.task.add(taskEntity);
+        this.task.add(taskEntity);
     }
 
     public boolean equals(final Object o) {
@@ -47,11 +40,7 @@ public class TagEntity {
         final Object this$str = this.getStr();
         final Object other$str = other.getStr();
         if (this$str == null ? other$str != null : !this$str.equals(other$str)) return false;
-        /*final Object this$task = this.getTask();
-        final Object other$task = other.getTask();
-        if (this$task == null ? other$task != null : !this$task.equals(other$task)) return false;
 
-         */
         return true;
     }
 
@@ -66,25 +55,6 @@ public class TagEntity {
         result = result * PRIME + ($tag_id == null ? 43 : $tag_id.hashCode());
         final Object $str = this.getStr();
         result = result * PRIME + ($str == null ? 43 : $str.hashCode());
-        /*final Object $task = this.getTask();
-        result = result * PRIME + ($task == null ? 43 : $task.hashCode());
-
-         */
         return result;
     }
-/*
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        TagEntity tagEntity = (TagEntity) o;
-        return tag_id.equals(tagEntity.tag_id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(tag_id,str);
-    }
-
- */
 }

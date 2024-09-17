@@ -8,6 +8,5 @@ public class TagInfo
 {
     private Long id;
     private String str;
-    //@Column(name="tasks_set",length=50)
     private Set<TaskEntity> task;//=new HashSet<>();
 }

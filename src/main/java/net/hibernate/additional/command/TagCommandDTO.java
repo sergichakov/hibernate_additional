@@ -14,6 +14,5 @@ import java.util.Set;
 public class TagCommandDTO {
     private Long tag_id;
     private String str;
-    //@Column(name="tasks_set",length=50)
-    private Set<TaskEntity> task;//=new HashSet<>();
+    private Set<TaskEntity> task;
 }

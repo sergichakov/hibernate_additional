@@ -11,5 +11,5 @@ public interface CommentEntityDtoMapper {
     CommentEntityDtoMapper INSTANCE= Mappers.getMapper(CommentEntityDtoMapper.class);
     @Mapping(target = "task", ignore = true)
     CommentDTO toDTO(CommentEntity tag);
-    //CommentEntity toModel(CommentDTO tagDTO);
+    CommentEntity toModel(CommentDTO tagDTO);
 }

@@ -25,7 +25,6 @@ public class RegisterServlet extends HttpServlet {
         ServletContext servletContext = getServletContext();
         servletContext.setAttribute("logger",logger);
     }
-
     public void doGet(HttpServletRequest request, HttpServletResponse response)
             throws IOException, ServletException {
 
@@ -33,21 +32,9 @@ public class RegisterServlet extends HttpServlet {
         ServletContext servletContext = getServletContext();
         Logger logger=(Logger) servletContext.getAttribute("logger");
         SessionObject sessionObject=(SessionObject) currentSession.getAttribute("session");
-
-
-
         String userName=request.getParameter("userName");
         String password=request.getParameter("password");
         logger.info("The "+userName+" User is registered");
-        //String workerName="Unknown";
-        //String hideForm="";
-/*        if(userName!=null&& !userName.isEmpty()){
-            workerName=userName;
-            sessionObject.setName(userName);
-            sessionObject.setPassword(password);
-            //hideForm=" hidden='true' ";
-            //request.setAttribute("hideForm",hideForm);
-        }*/
         if(userName==null||password==null||userName.isEmpty()) {
             if(sessionObject==null) {
                 request.setAttribute("pleaseEnterUserNamePassword", "Please Enter UserName and Password");
@@ -65,23 +52,9 @@ public class RegisterServlet extends HttpServlet {
             }else{
                 sessionObject.setName(userName);
                 sessionObject.setPassword(password);
-                System.out.println("registerServlet set username and password");
+                logger.info("registerServlet set username and password");
             }
-
-        }/*else{
-            workerName=sessionObject.getName();
-            //hideForm=" hidden='true' ";
-            //request.setAttribute("hideForm",hideForm);
-            //sessionObject.setCurrentLevel(1);
         }
-
-        String ipAddress = request.getHeader("X-FORWARDED-FOR");//getting ipAddress
-        if (ipAddress == null) {
-            ipAddress = request.getRemoteAddr();
-        }
-        request.setAttribute("ipAddress",""+ipAddress);
-        request.setAttribute("playerName",""+workerName);
-*/
         UserRegistrationService userRegistrationService=new UserRegistrationService(new SessionRepoHelper());
         UserDTO isAuth= null;
         try {
@@ -89,17 +62,14 @@ public class RegisterServlet extends HttpServlet {
         } catch (AuthenticationException e) {
             request.getRequestDispatcher("/register.jsp").include(request, response);
             return ;
-            //response.sendError(404, "User name "+sessionObject.getName()+" have wrong password or not registered");
         }
         String isAuthString="NoName";
-
-        if (isAuth==null){// || isAuth.getUserName()==null|| isAuth.getUserName().isEmpty()){
+        if (isAuth==null){
             userRegistrationService.registerUser(userName,password);
         }else{
             isAuthString=isAuth.getUserName();
         }
-        request.setAttribute("ObjectUserName",""+isAuthString);//+" length of str="+sessionObject.getName().length());
-        //request.setAttribute("ObjectUserName","Object user name");
+        request.setAttribute("ObjectUserName",""+isAuthString);
         request.getRequestDispatcher("/register.jsp").include(request, response);
     }
 }

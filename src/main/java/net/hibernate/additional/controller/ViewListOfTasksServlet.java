@@ -36,26 +36,15 @@ public class ViewListOfTasksServlet extends HttpServlet {
         Logger logger = LoggerFactory.getLogger(ViewListOfTasksServlet.class);
         ServletContext servletContext = getServletContext();
         servletContext.setAttribute("logger",logger);
-
-
-        //try{
-            TaskService taskService=new TaskService(new SessionRepoHelper());
-            servletContext.setAttribute("service",taskService);
-        /*}catch(IOException e) {
-            logger.error("cant instantiate QuestionService "+ e.getMessage());
-        }
-
-         */
+        TaskService taskService=new TaskService(new SessionRepoHelper());
+        servletContext.setAttribute("service",taskService);
     }
-
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         ServletContext servletContext = getServletContext();
         HttpSession currentSession = request.getSession();
         String pageNumber = request.getParameter("pageNumber");
         String pageSize = request.getParameter("pageSize");
-        System.out.println(pageNumber+" pageNumber=countOnPage="+pageSize);
-
         SessionObject sessionObject=(SessionObject) currentSession.getAttribute("session");
         TaskService taskService=(TaskService) servletContext.getAttribute("service");
         Logger logger=(Logger)servletContext.getAttribute("logger");
@@ -63,16 +52,12 @@ public class ViewListOfTasksServlet extends HttpServlet {
         if(sessionObject==null){
             sessionObject=SessionObject.builder()
                     .sessionId(currentSession.getId())
-                    //////.name("Unknown")
                     .build();
             currentSession.setAttribute("session",sessionObject);
         }else{
             workerName=sessionObject.getName();
 
         }
-
-
-        //request.setAttribute("ObjectUserName",sessionObject.getName());
         List<TaskDTO> taskDTOList=null;
         try {
             taskDTOList= taskService.listAllTasks(sessionObject, Integer.parseInt(pageNumber), Integer.parseInt(pageSize));
@@ -80,27 +65,18 @@ public class ViewListOfTasksServlet extends HttpServlet {
             response.sendError(404, "User name= "+e.getMessage()+"; User name= "+workerName+" have wrong password or not registered");
         }
 
-        /*if(taskDTOList==null){
-            response.sendError(404, "User name "+workerName+" have wrong password");
-        }*/
         ObjectMapper objectMapper = new ObjectMapper();
-        //objectMapper.configure(SerializationFeature.INDENT_OUTPUT, true);
         String fromDtoToJson="";
         try {
             fromDtoToJson=objectMapper.writeValueAsString(taskDTOList);
         }catch(JsonProcessingException e){
-            System.out.println("EXCEPTION");
             logger.error("JSON processing exception");
         }
-
         response.setStatus(200);
-
-        System.out.println("fromDTOtoJSON"+fromDtoToJson);
         response.setContentType("application/json");//"text/html;charset=UTF-8");
         PrintWriter out =  response.getWriter();
         out.println(fromDtoToJson);
         out.close();
-        //request.getRequestDispatcher("/question.jsp").include(request, response);//"/question.jsp"
     }
     @Override
     public void doPut(HttpServletRequest request, HttpServletResponse response) throws ServletException,IOException{
@@ -109,33 +85,13 @@ public class ViewListOfTasksServlet extends HttpServlet {
         SessionObject sessionObject=(SessionObject) currentSession.getAttribute("session");
         List<TaskCommandDTO> taskCommandDto=jacksonProcessing(request);
 
-        /*Set<TagCommandDTO> tagCommandDto=taskCommandDto.getTag();
-        //String tagString=tagCommandDto.
-        Set<TagCommandDTO> tagCommand=new HashSet<>();
-        String tagString="";
-        for (TagCommandDTO tag:tagCommandDto){
-            tagString=tag.getStr()+" ";
-        }
-        tagString=tagString.trim();
-        for(String tag:tagString.split("\\p{Zs}")){
-            if(tag.trim().isEmpty())continue;
-            TagCommandDTO tagCommandDTO=new TagCommandDTO();
-            tagCommandDTO.setStr(tag.trim());
-            tagCommand.add(tagCommandDTO);
-        }
-        taskCommandDto.setTag(tagCommand);
-         */
-        //TaskCommandDtoEntityMapper taskMapper=new TaskCommandDtoEntityMapperImpl();
-        //TaskDTO taskDTO=taskMapper.toDTO(taskEntity);
         TaskService taskService=(TaskService) servletContext.getAttribute("service");
-        System.out.println("taskCommandDTO"+taskCommandDto);
         boolean boolSuccess=false;
         for (TaskCommandDTO taskCommand:taskCommandDto) {
             try {
                 boolSuccess = taskService.editTask(taskCommand,sessionObject);//(taskCommandDto)
             } catch (AuthenticationException e) {
                 response.sendError(404, e.getMessage()+sessionObject.getName()+" have wrong password or not registered");
-                //throw new RuntimeException(e);
             }catch(NoPermissionException e){
                 response.sendError(404, e.getMessage()+sessionObject.getName()+" dont have permission");
             }
@@ -164,16 +120,13 @@ public class ViewListOfTasksServlet extends HttpServlet {
 
         }
         ObjectMapper objectMapper = new ObjectMapper();
-        //objectMapper.configure(SerializationFeature.INDENT_OUTPUT, true);
         String fromDtoToJson="";
         try {
             fromDtoToJson=objectMapper.writeValueAsString(taskDTO);
         }catch(JsonProcessingException e){
-
-            System.out.println("EXCEPTION");
             logger.error("JSON processing exception");
         }
-        response.setContentType("application/json");//"text/html;charset=UTF-8");
+        response.setContentType("application/json");
         PrintWriter out =  response.getWriter();
         out.println(fromDtoToJson);
         out.close();
@@ -183,13 +136,11 @@ public class ViewListOfTasksServlet extends HttpServlet {
         HttpSession currentSession = request.getSession();
         SessionObject sessionObject=(SessionObject) currentSession.getAttribute("session");
         TaskService taskService=(TaskService) servletContext.getAttribute("service");
-        Logger logger=(Logger)servletContext.getAttribute("logger");
         BufferedReader buffer=request.getReader();
 
         String json=buffer.lines().collect(Collectors.joining());
         ObjectMapper objectMapper=new ObjectMapper();
         TaskCommandDTO taskCommandDto=null;
-        System.out.println("JSON_STRING"+json);
         try {
             taskCommandDto = objectMapper.readValue(json, TaskCommandDTO.class);
         }catch(JsonMappingException e){
@@ -197,32 +148,26 @@ public class ViewListOfTasksServlet extends HttpServlet {
         }catch(JsonProcessingException e){
             throw new IOException("Cant process JSon file",e);
         }
-        //taskCommandDto.
         Set<TagCommandDTO> tagCommandDto=taskCommandDto.getTag();
-        //String tagString=tagCommandDto.
         String tagString="";
         for (TagCommandDTO tag:tagCommandDto){
             tagString=tag.getStr()+" ";
         }
         Set<TagCommandDTO> tagCommandSet=new HashSet<>();
         tagString=tagString.trim();
-        List<TaskCommandDTO> taskSet=new ArrayList<>();////эта строка не нужна и List вообще не нужен
+        List<TaskCommandDTO> taskSet=new ArrayList<>();
         for(String tag:tagString.split("\\p{Zs}")){
             tag=tag.trim();
             if(tag.isEmpty())continue;
             Long tagId=taskService.getIdOfTag(tag);
-            //TaskCommandNew taskCommandNew=new
             TagCommandDTO tagCommandDTO=new TagCommandDTO();
             tagCommandDTO.setStr(tag);
             tagCommandDTO.setTag_id(tagId);
             tagCommandSet.add(tagCommandDTO);
-            //TaskCommandDTO taskComm=taskCommandDto.toBuilder().tag(tagCommand).build();
-            //taskSet.add(taskComm);
         }
-        //logger.info("tagCommand"+tagCommand);
         taskCommandDto.setTag(tagCommandSet);
-        taskSet.add(taskCommandDto);//Удали костыль
-        return taskSet;//taskCommandDto;
+        taskSet.add(taskCommandDto);
+        return taskSet;
     }
     @Override
     public void doDelete(HttpServletRequest request, HttpServletResponse response) throws ServletException,IOException{
@@ -232,16 +177,6 @@ public class ViewListOfTasksServlet extends HttpServlet {
         SessionObject sessionObject=(SessionObject) currentSession.getAttribute("session");
         TaskService taskService=(TaskService) servletContext.getAttribute("service");
         List<TaskCommandDTO> taskCommandDto=jacksonProcessing(request);
-        /*for(TaskCommandDTO taskCommand:taskCommandDto) {
-            try {
-                taskDTO = taskService.createTask(taskCommand,sessionObject);//taskCommandDto
-            } catch (AuthenticationException e) {
-                response.sendError(404, "User name "+sessionObject.getName()+" have wrong password or not registered");
-            }catch(NoPermissionException e){
-                response.sendError(404, "User name "+sessionObject.getName()+" but need ADMIN permission");
-            }
-
-        }*/
         logger.info("deletion DTO="+taskCommandDto);
         boolean isSuccessFull=false;
         for(TaskCommandDTO taskCommand:taskCommandDto) {
