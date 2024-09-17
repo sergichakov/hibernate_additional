@@ -3,3 +3,4 @@ logs/
 .mvn/
 src/
 node_modules/
+Dockerfile
