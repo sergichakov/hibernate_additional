@@ -16,7 +16,7 @@ mvnw.cmd
 *.iml
 *.ipr
 *.java_
-.github
+.github/
 Dockerfile
 
 ### Eclipse ###
