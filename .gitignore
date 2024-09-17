@@ -16,6 +16,8 @@ mvnw.cmd
 *.iml
 *.ipr
 *.java_
+.github
+Dockerfile
 
 ### Eclipse ###
 .apt_generated
